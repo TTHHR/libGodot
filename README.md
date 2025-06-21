@@ -1,3 +1,44 @@
+# Godot引擎库项目说明
+
+## 项目概述
+- Godot Engine的库工程项目
+- 编译产物为`.so`共享库文件
+- 生成的库文件可集成到其他工程项目中使用
+
+---
+
+## 编译指南
+### 环境要求
+- **平台**: Ubuntu 22.04
+
+### 编译步骤
+1. 执行根目录下的构建脚本：
+   ```bash
+   ./build.sh
+
+### 产物输出：
+生成 .so 共享库文件
+### Android平台编译
+修改build.sh脚本中的目标平台参数：
+
+platform="android"  # 修改此参数
+
+## 测试方法
+### 测试工程位置
+  项目根目录/libTest/ 
+### 环境准备
+  需要安装以下依赖库：
+
+  GLFW
+  CMake构建系统
+### 测试步骤
+ 进入测试目录：
+ cd libTest/
+ 执行CMake构建：
+ mkdir build && cd build
+ cmake .. && make
+
+
 # Godot Engine
 
 <p align="center">

@@ -36,6 +36,10 @@
 #include <climits>
 #include <clocale>
 #include <cstdlib>
+//tthhr add
+#include <chrono> // For time calculations
+#include <stdio.h>
+#include <string.h>
 
 #if defined(SANITIZERS_ENABLED)
 #include <sys/resource.h>
@@ -54,6 +58,9 @@ extern "C" const char *pck_section_dummy_call() {
 #endif
 
 int main(int argc, char *argv[]) {
+    // Get software start time
+    char logbuf[1024];
+    auto start_time = std::chrono::high_resolution_clock::now();
 #if defined(SANITIZERS_ENABLED)
 	// Note: Set stack size to be at least 30 MB (vs 8 MB default) to avoid overflow, address sanitizer can increase stack usage up to 3 times.
 	struct rlimit stack_lim = { 0x1E00000, 0x1E00000 };
@@ -71,8 +78,24 @@ int main(int argc, char *argv[]) {
 	ERR_FAIL_NULL_V(cwd, ERR_OUT_OF_MEMORY);
 	char *ret = getcwd(cwd, PATH_MAX);
 
-	Error err = Main::setup(argv[0], argc - 1, &argv[1]);
+	Error err = Main::setup(argv[0], argc - 1, &argv[1],false);
 
+	sleep(1);
+
+
+	err = Main::setup2(false);
+
+		sleep(1);
+
+	Main::setup_boot_logo();
+
+		sleep(1);
+
+	// Calculate software initialization time
+	auto init_end_time = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> init_duration = init_end_time - start_time;
+	sprintf(logbuf,"Initialization time: %.2f seconds" ,init_duration.count());
+	WARN_PRINT(logbuf);
 	if (err != OK) {
 		free(cwd);
 		if (err == ERR_HELP) { // Returned by --help and --version, so success.
@@ -82,8 +105,10 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (Main::start() == EXIT_SUCCESS) {
+		WARN_PRINT("main start success");
 		os.run();
 	} else {
+		WARN_PRINT("main start failure");
 		os.set_exit_code(EXIT_FAILURE);
 	}
 	Main::cleanup();
@@ -95,5 +120,12 @@ int main(int argc, char *argv[]) {
 	}
 	free(cwd);
 
-	return os.get_exit_code();
+	// Calculate software runtime
+	auto end_time = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> runtime_duration = end_time - start_time;
+	sprintf(logbuf,"Total runtime: %.2f seconds" ,runtime_duration.count());
+	WARN_PRINT(logbuf);
+
+	//return os.get_exit_code();
+	return EXIT_SUCCESS;
 }

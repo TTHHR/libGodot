@@ -85,7 +85,8 @@ private:
 	jmethodID _get_activity = nullptr;
 
 public:
-	GodotJavaWrapper(JNIEnv *p_env, jobject p_godot_instance);
+	GodotJavaWrapper(JNIEnv *p_env, jobject p_activity, jobject p_godot_instance);
+	GodotJavaWrapper(void* funptr);
 	~GodotJavaWrapper();
 
 	jobject get_activity();

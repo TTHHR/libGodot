@@ -63,9 +63,12 @@ private:
 	jmethodID _set_screen_orientation = 0;
 	jmethodID _get_screen_orientation = 0;
 	jmethodID _get_system_dir = 0;
+	String baseDir;
 
 public:
 	GodotIOJavaWrapper(JNIEnv *p_env, jobject p_godot_io_instance);
+	GodotIOJavaWrapper(void* funptr);
+	void setBaseDir(String base);
 	~GodotIOJavaWrapper();
 
 	jobject get_instance();

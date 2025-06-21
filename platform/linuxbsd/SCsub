@@ -12,6 +12,7 @@ common_linuxbsd = [
     "freedesktop_portal_desktop.cpp",
     "freedesktop_screensaver.cpp",
     "freedesktop_at_spi_monitor.cpp",
+    "hook/godot_linux_hook.cpp",
 ]
 
 if env["use_sowrap"]:
