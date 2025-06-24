@@ -29,23 +29,23 @@ bool godotLibSetup(const char* execPath, char** cmdLine,int cmdLen){
 	
 	return true;
 }
-bool godotLibStep(int step)
+bool godotLibStep(GODOT_LIB_STEP_TYPE step)
 {
 	
 	Error err ;
-	if(step==1)
+	if(step==GODOT_LIB_SETUP2)
 	{
 		err = Main::setup2(false);
 		logInterface("Main::setup2 %d", err);
 		return false;
 	}
-	else if (step==2)
+	else if (step==GODOT_LIB_SET_BOOT_LOGO)
 	{
 		logInterface("Main::setup_boot_logo ");
 		Main::setup_boot_logo();
 		return false;
 	}
-	else if (step==3)
+	else if (step==GODOT_LIB_INIT)
 	{
 		Main::start();
 		logInterface("Main::start ");
@@ -56,11 +56,17 @@ bool godotLibStep(int step)
 		project_settings->save();
 		return false;
 	}
-
-	bool should_swap_buffers = true;
-	DisplayServer::get_singleton()->process_events(); 
-	Main::iteration();
-return should_swap_buffers;
+	else if (step==GODOT_LIB_RUN)
+	{
+		bool exit = Main::iteration();
+		if (exit) {
+			logInterface("!!!!!some err!!!!");
+			return false;
+		}
+		return true;
+	}
+	logInterface("step err %d",step);
+return false;
 }
 void godotLibWindowChange(int w,int h)
 {

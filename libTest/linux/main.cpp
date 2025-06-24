@@ -1,15 +1,11 @@
 #include <GLFW/glfw3.h>
-#include <dlfcn.h>    // 动态加载库
+#include "godot_linux_hook.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstdarg> 
 #include <GLES2/gl2.h>
 #include <chrono> // For time calculations
-// 定义 Godot 函数指针类型
-typedef void (*initGodotOsFunc)(void (*)(const char*, ...));
-typedef bool (*GodotLibSetupFunc)(const char*, char**, int);
-typedef bool (*GodotLibStepFunc)(int);
-typedef void (*GodotLibWindowChangeFunc)(int, int);
+
 void renderMyFrame();
 
 // Godot 日志回调（转发到控制台）
@@ -37,42 +33,20 @@ int main() {
     }
     glfwMakeContextCurrent(window);
 
-    // 3. 加载 Godot 库
-    void* godotLib = dlopen("../../../bin/godot.linuxbsd.template_release.x86_64", RTLD_LAZY); // 替换为你的 .so 路径
-    if (!godotLib) {
-        fprintf(stderr, "Failed to load Godot library: %s\n", dlerror());
-        glfwTerminate();
-        return -1;
-    }
-
-    // 4. 获取 Godot 函数
-    auto initGodotOs = (initGodotOsFunc)dlsym(godotLib, "initGodotOs");
-    auto godotLinuxLibSetup = (GodotLibSetupFunc)dlsym(godotLib, "godotLibSetup");
-    auto godotLinuxLibStep = (GodotLibStepFunc)dlsym(godotLib, "godotLibStep");
-    auto godotLinuxLibChange = (GodotLibWindowChangeFunc)dlsym(godotLib, "godotLibWindowChange");
-
-    if (!initGodotOs || !godotLinuxLibSetup || !godotLinuxLibStep || !godotLinuxLibChange) {
-        fprintf(stderr, "Failed to load Godot functions: %s\n", dlerror());
-        dlclose(godotLib);
-        glfwTerminate();
-        return -1;
-    }
-
     // 5. 初始化 Godot
     initGodotOs(godotLogger);  // 设置日志回调
 
     const char* execPath = "./godot";  // 替换为 Godot 可执行路径（或任意字符串）
     char* cmdLine[] = { (char*)"--path", (char*)"/home/harry/car/" }; // 命令行参数
-    if (!godotLinuxLibSetup(execPath, cmdLine, 2)) {
+    if (!godotLibSetup(execPath, cmdLine, 2)) {
         fprintf(stderr, "Godot setup failed\n");
-        dlclose(godotLib);
         glfwTerminate();
         return -1;
     }
 
     // 6. 分步执行 Godot 初始化
     
-int step = 1;
+GODOT_LIB_STEP_TYPE step = GODOT_LIB_SETUP2;
 int fps = 0;
 auto start_time = std::chrono::high_resolution_clock::now();
     // 7. 主循环
@@ -80,13 +54,28 @@ auto start_time = std::chrono::high_resolution_clock::now();
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.1f, 0.2f, 0.1f, 1.0f);
-        if (godotLinuxLibStep(step)) {
+        if (godotLibStep(step)) {
+            //glfwSwapBuffers(window);
+        }
+
+        if(step == GODOT_LIB_SETUP2)
+        {
+            step = GODOT_LIB_SET_BOOT_LOGO;
+        }
+        else if(step == GODOT_LIB_SET_BOOT_LOGO)
+        {
+            step = GODOT_LIB_INIT;
+        }
+        else if(step == GODOT_LIB_INIT)
+        {
+            step = GODOT_LIB_RUN;
+        }
+        else
+        {
+            glfwMakeContextCurrent(window);
+            renderMyFrame();  // 渲染自定义内容
             glfwSwapBuffers(window);
         }
-        renderMyFrame();  // 渲染自定义内容
-        glfwSwapBuffers(window);
-        if(step<5)
-        step++;
         fps++;
         auto draw_end_time = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> draw_duration = draw_end_time - start_time;
@@ -98,9 +87,6 @@ auto start_time = std::chrono::high_resolution_clock::now();
         }
 
     }
-
-    // 8. 清理
-    dlclose(godotLib);
     glfwTerminate();
     return 0;
 }
