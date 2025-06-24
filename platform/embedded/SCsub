@@ -1,0 +1,11 @@
+Import('env')
+
+env_embedded = env.Clone()
+common_embedded = [
+    "embedded_os.cpp",
+    "embedded_export.cpp",
+    # "embedded_os.cpp",
+    # "embedded_os.cpp",
+    # "embedded_os.cpp",
+]
+prog = env.add_program("#bin/godot",  common_embedded)
