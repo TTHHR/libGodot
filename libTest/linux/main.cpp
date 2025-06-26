@@ -1,5 +1,5 @@
 #include <GLFW/glfw3.h>
-#include "godot_linux_hook.h"
+#include "embedded_export.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstdarg> 
@@ -33,12 +33,14 @@ int main() {
     }
     glfwMakeContextCurrent(window);
 
+    void* gl_context = (void*)glfwGetCurrentContext(); 
+
     // 5. 初始化 Godot
-    initGodotOs(godotLogger);  // 设置日志回调
+    initGodotOs(godotLogger,gl_context, (void*)window);
 
     const char* execPath = "./godot";  // 替换为 Godot 可执行路径（或任意字符串）
-    char* cmdLine[] = { (char*)"--path", (char*)"/home/harry/car/" }; // 命令行参数
-    if (!godotLibSetup(execPath, cmdLine, 2)) {
+    char* cmdLine[] = { (char*)"--rendering-driver", (char*)"opengl3_es",(char*)"--path", (char*)"/home/harry/car/" }; // 命令行参数
+    if (!godotLibSetup(execPath, cmdLine,4)) {
         fprintf(stderr, "Godot setup failed\n");
         glfwTerminate();
         return -1;

@@ -72,9 +72,6 @@ def get_flags():
 
 
 def configure(env: "SConsEnvironment"):
-    env.Append(CCFLAGS=["-fPIC"])  # 对所有 C/C++ 文件生效
-    env.Append(CXXFLAGS=["-fPIC"])
-    env.Append(LINKFLAGS=["-shared", "-fPIC"])  # 链接时也启用
     # Validate arch.
     supported_arches = ["x86_32", "x86_64", "arm32", "arm64", "rv64", "ppc64", "loongarch64"]
     validate_arch(env["arch"], get_name(), supported_arches)
@@ -492,7 +489,7 @@ def configure(env: "SConsEnvironment"):
         else:
             env.Append(CPPDEFINES=["ACCESSKIT_DYNAMIC"])
         env.Append(CPPDEFINES=["ACCESSKIT_ENABLED"])
-
+    env["vulkan"]=False
     if env["vulkan"]:
         env.Append(CPPDEFINES=["VULKAN_ENABLED", "RD_ENABLED"])
         if not env["use_volk"]:
@@ -531,5 +528,3 @@ def configure(env: "SConsEnvironment"):
     else:
         if env["use_llvm"] and platform.system() != "FreeBSD":
             env.Append(LIBS=["atomic"])
-    env.Append(LINKFLAGS=["-shared", "-fPIC"])
-    env["SHLIBSUFFIX"] = ".so"

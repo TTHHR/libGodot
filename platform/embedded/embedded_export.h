@@ -1,22 +1,18 @@
 // embedded_export.h
 #pragma once
-#ifdef __cplusplus
+
+#define EXPORT __attribute__((visibility("default")))
+
 extern "C" {
-#endif
-
-// 初始化Godot引擎
-void godot_embedded_init(void* gl_context, void* window_handle);
-
-// 处理输入事件
-void godot_embedded_handle_input(int type, int key, int state);
-
-// 主循环迭代
-void godot_embedded_step();
-
-// 设置日志回调
-typedef void (*LogCallback)(int level, const char* message);
-void godot_embedded_set_logger(LogCallback callback);
-
-#ifdef __cplusplus
+    typedef enum {
+        GODOT_LIB_SETUP2 = 0,
+        GODOT_LIB_SET_BOOT_LOGO,
+        GODOT_LIB_INIT,
+        GODOT_LIB_RUN,
+    } GODOT_LIB_STEP_TYPE;
+typedef void (*GODOT_LOGGER_NOTIFY)(const char *format, ...);
+EXPORT void initGodotOs(GODOT_LOGGER_NOTIFY logInterface,void* gl_context, void* window_handle);
+EXPORT bool godotLibSetup(const char* execPath, char** cmdLine,int cmdLen);
+EXPORT bool godotLibStep(GODOT_LIB_STEP_TYPE step);
+EXPORT void godotLibWindowChange(int w,int h);
 }
-#endif

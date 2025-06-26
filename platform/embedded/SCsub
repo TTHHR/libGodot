@@ -4,8 +4,11 @@ env_embedded = env.Clone()
 common_embedded = [
     "embedded_os.cpp",
     "embedded_export.cpp",
-    # "embedded_os.cpp",
+    "displayserver_embedded.cpp",
     # "embedded_os.cpp",
     # "embedded_os.cpp",
 ]
+if False==env_embedded['shared'] :
+    common_embedded.append("embedded_main.cpp")
+    env.Append(LIBS=["glfw","GLESv2"])
 prog = env.add_program("#bin/godot",  common_embedded)

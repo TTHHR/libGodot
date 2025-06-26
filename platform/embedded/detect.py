@@ -81,9 +81,13 @@ def configure(env: "SConsEnvironment"):
             ("_FILE_OFFSET_BITS", 64),
         ]
     )
-    env.Append(CCFLAGS=["-fPIC"])  # 对所有 C/C++ 文件生效
-    env.Append(CXXFLAGS=["-fPIC"])
-    env.Append(LINKFLAGS=["-shared", "-fPIC"])  # 链接时也启用
+    if env["shared"]:
+        print("Building shared library.")
+        env.Append(CCFLAGS=["-fPIC"])  # 对所有 C/C++ 文件生效
+        env.Append(CXXFLAGS=["-fPIC"])
+        env.Append(LINKFLAGS=["-shared", "-fPIC"])  # 链接时也启用
+    else:
+        print("Building bin.")
     # Validate arch.
     supported_arches = ["x86_32", "x86_64", "arm32", "arm64", "rv64", "ppc64", "loongarch64"]
     validate_arch(env["arch"], get_name(), supported_arches)
@@ -437,6 +441,7 @@ def configure(env: "SConsEnvironment"):
             env.Append(CPPDEFINES=["ACCESSKIT_DYNAMIC"])
         env.Append(CPPDEFINES=["ACCESSKIT_ENABLED"])
 
+    env["vulkan"]=False
     if env["vulkan"]:
         env.Append(CPPDEFINES=["VULKAN_ENABLED", "RD_ENABLED"])
         if not env["use_volk"]:
@@ -450,7 +455,7 @@ def configure(env: "SConsEnvironment"):
 
     env.Append(LIBS=["pthread"])
 
-    env.Append(LIBS=["dl"])
+    env.Append(LIBS=["dl","EGL"])
 
     if platform.libc_ver()[0] != "glibc":
         if env["execinfo"]:
@@ -474,5 +479,6 @@ def configure(env: "SConsEnvironment"):
     else:
         if env["use_llvm"] and platform.system() != "FreeBSD":
             env.Append(LIBS=["atomic"])
-    env.Append(LINKFLAGS=["-shared", "-fPIC"])
-    env["extra_suffix"] = "so"
+    if env["shared"]:
+        env.Append(LINKFLAGS=["-shared", "-fPIC"])
+    

@@ -166,6 +166,7 @@ opts.Add(
 )
 opts.Add(EnumVariable("arch", "CPU architecture", "auto", ["auto"] + architectures, architecture_aliases, ignorecase=2))
 opts.Add(BoolVariable("dev_build", "Developer build with dev-only debugging code (DEV_ENABLED)", False))
+opts.Add(BoolVariable("shared", "Build shared library", False))
 opts.Add(
     EnumVariable(
         "optimize",
