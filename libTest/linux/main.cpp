@@ -17,13 +17,17 @@ void godotLogger(const char* format, ...) {
     printf("\n");
 }
 
-int main() {
+int main(int argc, char *argv[]) {
     // 1. 初始化 GLFW
     if (!glfwInit()) {
         fprintf(stderr, "Failed to initialize GLFW\n");
         return -1;
     }
-
+    // 设置OpenGL 3.0 + EGL
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
     // 2. 创建窗口
     GLFWwindow* window = glfwCreateWindow(800, 600, "Godot + GLFW", nullptr, nullptr);
     if (!window) {
@@ -33,14 +37,12 @@ int main() {
     }
     glfwMakeContextCurrent(window);
 
-    void* gl_context = (void*)glfwGetCurrentContext(); 
-
+   
     // 5. 初始化 Godot
-    initGodotOs(godotLogger,gl_context, (void*)window);
+    initGodotOs(godotLogger);
 
-    const char* execPath = "./godot";  // 替换为 Godot 可执行路径（或任意字符串）
-    char* cmdLine[] = { (char*)"--rendering-driver", (char*)"opengl3_es",(char*)"--path", (char*)"/home/harry/car/" }; // 命令行参数
-    if (!godotLibSetup(execPath, cmdLine,4)) {
+    char* cmdLine[] = { (char*)"--path", (char*)"../../testProj" }; // 命令行参数
+    if (!godotLibSetup(argv[0], cmdLine,2)) {
         fprintf(stderr, "Godot setup failed\n");
         glfwTerminate();
         return -1;
@@ -74,7 +76,6 @@ auto start_time = std::chrono::high_resolution_clock::now();
         }
         else
         {
-            glfwMakeContextCurrent(window);
             renderMyFrame();  // 渲染自定义内容
             glfwSwapBuffers(window);
         }

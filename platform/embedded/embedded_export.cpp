@@ -10,11 +10,11 @@
 static EmbeddedOS* embedded_os = nullptr;
 
 
-
-void initGodotOs(GODOT_LOGGER_NOTIFY logInterface,void* gl_context, void* window_handle)
+void initGodotOs(GODOT_LOGGER_NOTIFY logInterface)
 {
     embedded_os = new EmbeddedOS();
     embedded_os->set_logger(logInterface);
+	embedded_os->log("init godot lib");
 }
 bool godotLibSetup(const char* execPath, char** cmdLine,int cmdLen){
 	
@@ -40,7 +40,7 @@ bool godotLibStep(GODOT_LIB_STEP_TYPE step)
 	{
 		embedded_os->log("Main::setup_boot_logo ");
 		Main::setup_boot_logo();
-		return false;
+		return true;
 	}
 	else if (step==GODOT_LIB_INIT)
 	{
@@ -55,12 +55,13 @@ bool godotLibStep(GODOT_LIB_STEP_TYPE step)
 	}
 	else if (step==GODOT_LIB_RUN)
 	{
+		embedded_os->should_swap_buffers=false;
 		bool exit = Main::iteration();
 		if (exit) {
 			embedded_os->log("!!!!!some err!!!!");
 			return false;
 		}
-		return true;
+		return embedded_os->should_swap_buffers;
 	}
 	embedded_os->log("step err %d",step);
 return false;

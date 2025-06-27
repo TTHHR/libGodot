@@ -11,7 +11,7 @@ extern "C" {
         GODOT_LIB_RUN,
     } GODOT_LIB_STEP_TYPE;
 typedef void (*GODOT_LOGGER_NOTIFY)(const char *format, ...);
-EXPORT void initGodotOs(GODOT_LOGGER_NOTIFY logInterface,void* gl_context, void* window_handle);
+EXPORT void initGodotOs(GODOT_LOGGER_NOTIFY logInterface);
 EXPORT bool godotLibSetup(const char* execPath, char** cmdLine,int cmdLen);
 EXPORT bool godotLibStep(GODOT_LIB_STEP_TYPE step);
 EXPORT void godotLibWindowChange(int w,int h);

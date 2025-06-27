@@ -69,7 +69,7 @@ virtual void window_set_window_event_callback(const Callable &p_callable, Window
 	virtual void window_set_input_text_callback(const Callable &p_callable, WindowID p_window = MAIN_WINDOW_ID) override;
 	virtual void window_set_rect_changed_callback(const Callable &p_callable, WindowID p_window = MAIN_WINDOW_ID) override;
 	virtual void window_set_drop_files_callback(const Callable &p_callable, WindowID p_window = MAIN_WINDOW_ID) override;
-
+virtual DisplayServer::VSyncMode window_get_vsync_mode(WindowID p_window) const override;
 virtual ObjectID window_get_attached_instance_id(WindowID p_window = MAIN_WINDOW_ID) const override;
 virtual DisplayServer::WindowID get_window_at_screen_position(const Point2i &p_position) const override;
 virtual void window_attach_instance_id(ObjectID p_instance, DisplayServer::WindowID p_window) override;

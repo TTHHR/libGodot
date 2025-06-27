@@ -16,6 +16,8 @@ DisplayServerEmbedded::DisplayServerEmbedded(const String &p_rendering_driver, W
     // 设置主窗口参数
     main_window.size = EmbeddedOS::get_singleton()->get_display_size();
 	EmbeddedOS::get_singleton()->log("DisplayServerEmbedded: Initializing with driver %s" , p_rendering_driver.utf8().get_data());
+	OS::get_singleton()->set_current_rendering_method("gl_compatibility");
+	OS::get_singleton()->set_current_rendering_driver_name(p_rendering_driver);
     RasterizerGLES3::make_current(true);
     // 初始化成功
     r_error = OK;
@@ -51,7 +53,6 @@ void DisplayServerEmbedded::window_set_title(const String &p_title, DisplayServe
 	// Not supported on Android.
 }
 void DisplayServerEmbedded::swap_buffers() {
-	EmbeddedOS::get_singleton()->log("swap buff");
     EmbeddedOS::get_singleton()->should_swap_buffers=true;
 }
 Size2i DisplayServerEmbedded::window_get_size(WindowID p_window) const {
@@ -63,6 +64,10 @@ bool DisplayServerEmbedded::window_get_flag(DisplayServer::WindowFlags p_flag, D
 	return false;
 	
 }
+DisplayServer::VSyncMode DisplayServerEmbedded::window_get_vsync_mode(WindowID p_window) const {
+	return DisplayServer::VSYNC_ENABLED;
+}
+
 void DisplayServerEmbedded::window_set_current_screen(int p_screen, DisplayServer::WindowID p_window) {
 	// Not supported on Android.
 }
@@ -191,7 +196,6 @@ void DisplayServerEmbedded::window_set_flag(DisplayServer::WindowFlags p_flag, b
 Vector<String> DisplayServerEmbedded::get_rendering_drivers_func() {
 	Vector<String> drivers;
 	drivers.push_back("opengl3");
-	drivers.push_back("opengl3_es");
 	drivers.push_back("dummy");
 
 	return drivers;
