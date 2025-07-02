@@ -719,12 +719,6 @@ EditorPropertyPath::EditorPropertyPath() {
 	path->connect(SceneStringName(focus_exited), callable_mp(this, &EditorPropertyPath::_path_focus_exited));
 	path->set_h_size_flags(SIZE_EXPAND_FILL);
 
-	path_edit = memnew(Button);
-	path_edit->set_accessibility_name(TTRC("Edit"));
-	path_hb->add_child(path_edit);
-	add_focusable(path);
-	path_edit->connect(SceneStringName(pressed), callable_mp(this, &EditorPropertyPath::_path_pressed));
-
 	toggle_uid = memnew(Button);
 	toggle_uid->set_accessibility_name(TTRC("Toggle Display UID"));
 	toggle_uid->set_tooltip_text(TTRC("Toggles displaying between path and UID.\nThe UID is the actual value of this property."));
@@ -732,6 +726,12 @@ EditorPropertyPath::EditorPropertyPath() {
 	path_hb->add_child(toggle_uid);
 	add_focusable(toggle_uid);
 	toggle_uid->connect(SceneStringName(pressed), callable_mp(this, &EditorPropertyPath::_toggle_uid_display));
+
+	path_edit = memnew(Button);
+	path_edit->set_accessibility_name(TTRC("Edit"));
+	path_hb->add_child(path_edit);
+	add_focusable(path);
+	path_edit->connect(SceneStringName(pressed), callable_mp(this, &EditorPropertyPath::_path_pressed));
 }
 
 ///////////////////// CLASS NAME /////////////////////////
@@ -3399,7 +3399,7 @@ void EditorPropertyResource::setup(Object *p_object, const String &p_path, const
 		shader_picker->set_edited_material(Object::cast_to<ShaderMaterial>(p_object));
 		resource_picker = shader_picker;
 		connect(SceneStringName(ready), callable_mp(this, &EditorPropertyResource::_update_preferred_shader));
-	} else if (p_base_type == "AudioStream") {
+	} else if (ClassDB::is_parent_class(p_base_type, "AudioStream")) {
 		EditorAudioStreamPicker *astream_picker = memnew(EditorAudioStreamPicker);
 		resource_picker = astream_picker;
 	} else {
