@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     // 5. 初始化 Godot
     initGodotOs(godotLogger);
 
-    char* cmdLine[] = { (char*)"--path", (char*)"../../testProj" }; // 命令行参数
+    char* cmdLine[] = { (char*)"--path", (char*)"/home/harry/car" }; // 命令行参数
     if (!godotLibSetup(argv[0], cmdLine,2)) {
         fprintf(stderr, "Godot setup failed\n");
         glfwTerminate();

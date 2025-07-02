@@ -6,7 +6,7 @@
 - 生成的库文件可集成到其他工程项目中使用
 
 ## 文字记录放在微信公众号平台
-[text](https://mp.weixin.qq.com/mp/appmsgalbum?__biz=Mzk0ODMyMjA5NA==&action=getalbum&album_id=3966264523844960262#wechat_redirect)
+[文字记录集合链接](https://mp.weixin.qq.com/mp/appmsgalbum?__biz=Mzk0ODMyMjA5NA==&action=getalbum&album_id=3966264523844960262#wechat_redirect)
 
 ---
 
