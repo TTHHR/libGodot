@@ -25,12 +25,12 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Failed to initialize GLFW\n");
         return -1;
     }
-    // 设置OpenGL 3.2 + EGL
+    // 2设置OpenGL 3.2 + EGL
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
-    // 2. 创建窗口
+    // 3. 创建窗口
     GLFWwindow* window = glfwCreateWindow(800, 600, "Godot + GLFW", nullptr, nullptr);
     if (!window) {
         fprintf(stderr, "Failed to create GLFW window\n");
@@ -49,17 +49,17 @@ int main(int argc, char *argv[]) {
     {
         printf("imgui init fail\n ");
     }
-    // 5. 初始化 Godot
+    // 4. 初始化 Godot
     initGodotOs(godotLogger);
 
-    char* cmdLine[] = { (char*)"--path", (char*)"../../test3d" }; // 命令行参数
+    char* cmdLine[] = { (char*)"--path", (char*)"../../char" }; // 命令行参数
     if (!godotLibSetup(argv[0], cmdLine,2)) {
         fprintf(stderr, "Godot setup failed\n");
         glfwTerminate();
         return -1;
     }
 
-    // 6. 分步执行 Godot 初始化
+    // 5. 分步执行 Godot 初始化
     
 GODOT_LIB_STEP_TYPE step = GODOT_LIB_SETUP2;
 int fps = 0;
@@ -87,7 +87,7 @@ auto start_time = std::chrono::high_resolution_clock::now();
         }
         else
         {
-            renderMyFrame();  // 渲染自定义内容
+            //renderMyFrame();  // 渲染自定义内容
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
