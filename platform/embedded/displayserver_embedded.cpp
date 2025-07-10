@@ -18,7 +18,9 @@ DisplayServerEmbedded::DisplayServerEmbedded(const String &p_rendering_driver, W
 	EmbeddedOS::get_singleton()->log("DisplayServerEmbedded: Initializing with driver %s" , p_rendering_driver.utf8().get_data());
 	OS::get_singleton()->set_current_rendering_method("gl_compatibility");
 	OS::get_singleton()->set_current_rendering_driver_name(p_rendering_driver);
-    RasterizerGLES3::make_current(true);
+    RasterizerGLES3::make_current(false);
+	 // 初始化鼠标状态
+    mouse_position = Point2i(0, 0);
     // 初始化成功
     r_error = OK;
 }
@@ -33,7 +35,7 @@ Vector<DisplayServer::WindowID> DisplayServerEmbedded::get_window_list() const {
 	return ret;
 }
 bool DisplayServerEmbedded::has_feature(Feature p_feature) const {
-    return p_feature == FEATURE_SWAP_BUFFERS;
+    return p_feature == FEATURE_SWAP_BUFFERS||p_feature == FEATURE_MOUSE;
 }
 
 String DisplayServerEmbedded::get_name() const {
@@ -47,7 +49,56 @@ int DisplayServerEmbedded::window_get_current_screen(DisplayServer::WindowID p_w
 	return 0;
 }
 void DisplayServerEmbedded::process_events() {
-
+// 检查嵌入式OS提供的鼠标状态
+    EmbeddedOS* os = EmbeddedOS::get_singleton();
+    
+    // 处理鼠标移动
+    Point2i new_position = os->get_mouse_position();
+    if (mouse_position != new_position) {
+        // 创建鼠标移动事件
+        Ref<InputEventMouseMotion> motion_event;
+        motion_event.instantiate();
+        motion_event->set_position(new_position);
+        motion_event->set_global_position(new_position);
+        motion_event->set_relative(new_position - mouse_position);
+        motion_event->set_button_mask(mouse_button_state);
+        
+        // 发送事件
+        if (input_event_callback.is_valid()) {
+            Variant v = motion_event;
+            input_event_callback.call(v);
+        }
+        
+        mouse_position = new_position;
+    }
+    BitField<MouseButtonMask> last_button_state = MouseButtonMask::NONE;
+    int state = EmbeddedOS::get_singleton()->get_mouse_button_state();
+            if (state ==1) {
+				last_button_state.set_flag(MouseButtonMask::LEFT);
+			}
+			else if (state ==3) {
+				last_button_state.set_flag(MouseButtonMask::MIDDLE);
+			}
+			else if (state==2) {
+				last_button_state.set_flag(MouseButtonMask::RIGHT);
+			}
+    if (mouse_button_state != last_button_state) {
+        // 创建鼠标按钮事件
+        Ref<InputEventMouseButton> button_event;
+        button_event.instantiate();
+        button_event->set_position(mouse_position);
+        button_event->set_global_position(mouse_position);
+        button_event->set_button_mask(last_button_state);
+        
+        // 发送事件
+        if (input_event_callback.is_valid()) {
+            Variant v = button_event;
+            input_event_callback.call(v);
+        }
+        
+        mouse_button_state = last_button_state;
+    }
+    
 }
 void DisplayServerEmbedded::window_set_title(const String &p_title, DisplayServer::WindowID p_window) {
 	// Not supported on Android.
@@ -193,11 +244,19 @@ bool DisplayServerEmbedded::window_is_maximize_allowed(DisplayServer::WindowID p
 void DisplayServerEmbedded::window_set_flag(DisplayServer::WindowFlags p_flag, bool p_enabled, DisplayServer::WindowID p_window) {
 	// Not supported on Android.
 }
+// 实现鼠标相关函数
+Point2i DisplayServerEmbedded::mouse_get_position() const {
+    return mouse_position;
+}
+
+BitField<MouseButtonMask>  DisplayServerEmbedded::mouse_get_button_state() const {
+   
+   return mouse_button_state;
+}
 Vector<String> DisplayServerEmbedded::get_rendering_drivers_func() {
 	Vector<String> drivers;
-	drivers.push_back("opengl3");
+	drivers.push_back("opengl3_es");
 	drivers.push_back("dummy");
-
 	return drivers;
 }
 void DisplayServerEmbedded::register_display_driver() {

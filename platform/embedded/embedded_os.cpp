@@ -42,6 +42,14 @@ bool EmbeddedOS::_check_internal_feature_support(const String &p_feature) {
     return false;
 }
 
+Point2i EmbeddedOS::get_mouse_position() const {
+    return Point2i((int)x, (int)y);
+}
+
+unsigned int EmbeddedOS::get_mouse_button_state() const {
+    return mouse_button_state;
+}
+
 EmbeddedOS::EmbeddedOS() {
     main_loop = nullptr;
 }

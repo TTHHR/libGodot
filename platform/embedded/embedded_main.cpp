@@ -27,9 +27,9 @@ int main(int argc,char *argv[])
     if (!glfwInit()) return -1;
 
     // 设置OpenGL 3.0 + EGL
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
 
     GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL + EGL", NULL, NULL);
@@ -71,7 +71,7 @@ int main(int argc,char *argv[])
     // 创建EGL Context
     const EGLint contextAttribs[] = {
         EGL_CONTEXT_MAJOR_VERSION, 3,
-        EGL_CONTEXT_MINOR_VERSION, 0,
+        EGL_CONTEXT_MINOR_VERSION, 2,
         EGL_NONE
     };
     EGLContext context = eglCreateContext(display, config, EGL_NO_CONTEXT, contextAttribs);
@@ -100,6 +100,8 @@ if(os.should_swap_buffers) {
 		sleep(1);
 
 	Main::setup_boot_logo();
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
 if(os.should_swap_buffers) {
 		os.should_swap_buffers=false;
 		eglSwapBuffers(display, surface);
@@ -111,8 +113,20 @@ if(os.should_swap_buffers) {
 	main_loop->initialize();
 	 while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        // glClearColor(0.1f, 0.2f, 0.1f, 1.0f);
+    double x, y;
+    glfwGetCursorPos(window, &x, &y);
+    unsigned int state = 0;
+    if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)==GLFW_PRESS)
+    {
+        state=1;
+    }else if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT)==GLFW_PRESS)
+    {
+        state=2;    
+    }else if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE)==GLFW_PRESS)
+    {
+        state=3;
+    }
+    os.setMouseState(x,y,state);
         if (Main::iteration()) {
 			break;
 		}

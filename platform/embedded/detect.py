@@ -454,7 +454,7 @@ def configure(env: "SConsEnvironment"):
         env.Append(CPPDEFINES=["GLES3_ENABLED"])
 
     env.Append(LIBS=["pthread"])
-
+    env.Append(CPPDEFINES=["EMBEDDED_ENABLED", "UNIX_ENABLED"])
     env.Append(LIBS=["dl","EGL"])
 
     if platform.libc_ver()[0] != "glibc":

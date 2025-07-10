@@ -34,5 +34,7 @@
 #define GLES_API_ENABLED // Allow using GLES.
 #endif
 
-#include "thirdparty/glad/glad/egl.h"
-#include "thirdparty/glad/glad/gl.h"
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <GLES3/gl3.h>
+#include <GLES3/gl3ext.h>

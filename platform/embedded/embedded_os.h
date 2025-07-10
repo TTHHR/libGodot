@@ -10,6 +10,8 @@ class EmbeddedOS : public OS_Unix {
     virtual void delete_main_loop() override;
 private:
     MainLoop *main_loop = nullptr;
+    double x, y;//mouse
+    unsigned int mouse_button_state = 0;
 public:
     EmbeddedOS();
     ~EmbeddedOS();
@@ -35,6 +37,13 @@ public:
     virtual MainLoop *get_main_loop() const override;
     Size2i get_display_size();
     bool should_swap_buffers;
+    virtual Point2i get_mouse_position() const ;
+    virtual unsigned int get_mouse_button_state() const;
+    void setMouseState(double newX, double newY, unsigned int newButtonState) {
+        x = newX;
+        y = newY;
+        mouse_button_state = newButtonState;
+    }
 protected:
     GODOT_LOGGER_NOTIFY log_callback = nullptr;
     virtual void set_main_loop(MainLoop *p_main_loop) override;

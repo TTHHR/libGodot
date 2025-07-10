@@ -26,6 +26,8 @@ private:
 
 	Callable file_picker_callback;
     
+    Point2i mouse_position;
+    BitField<MouseButtonMask> mouse_button_state;
 public:
     // 构造/析构函数
     static DisplayServer *create_func(const String &p_rendering_driver, WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error);
@@ -90,4 +92,6 @@ virtual void window_set_flag(DisplayServer::WindowFlags p_flag, bool p_enabled, 
     
     static Vector<String> get_rendering_drivers_func();
     static void register_display_driver();
+    	virtual Point2i mouse_get_position() const override;
+	virtual BitField<MouseButtonMask> mouse_get_button_state() const override;
 };
