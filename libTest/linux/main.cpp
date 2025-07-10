@@ -5,7 +5,9 @@
 #include <cstdarg> 
 #include <GLES2/gl2.h>
 #include <chrono> // For time calculations
-
+#include "imgui.h"
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_glfw.h"
 void renderMyFrame();
 
 // Godot 日志回调（转发到控制台）
@@ -23,10 +25,10 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Failed to initialize GLFW\n");
         return -1;
     }
-    // 设置OpenGL 3.0 + EGL
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+    // 设置OpenGL 3.2 + EGL
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
     // 2. 创建窗口
     GLFWwindow* window = glfwCreateWindow(800, 600, "Godot + GLFW", nullptr, nullptr);
@@ -37,11 +39,20 @@ int main(int argc, char *argv[]) {
     }
     glfwMakeContextCurrent(window);
 
-   
+
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(800, 600);
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    bool b = ImGui_ImplOpenGL3_Init("#version 300 es"); // 根据ES版本调整
+    if (!b)
+    {
+        printf("imgui init fail\n ");
+    }
     // 5. 初始化 Godot
     initGodotOs(godotLogger);
 
-    char* cmdLine[] = { (char*)"--path", (char*)"/home/harry/car" }; // 命令行参数
+    char* cmdLine[] = { (char*)"--path", (char*)"../../test3d" }; // 命令行参数
     if (!godotLibSetup(argv[0], cmdLine,2)) {
         fprintf(stderr, "Godot setup failed\n");
         glfwTerminate();
@@ -77,6 +88,14 @@ auto start_time = std::chrono::high_resolution_clock::now();
         else
         {
             renderMyFrame();  // 渲染自定义内容
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+            ImGui::Begin("Hello, Godot + GLFW!"); // 创建一个窗口
+            ImGui::Text("This is a simple example of using Godot with GLFW and OpenGL ES 3.0.");
+            ImGui::End();
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
             glfwSwapBuffers(window);
         }
         fps++;

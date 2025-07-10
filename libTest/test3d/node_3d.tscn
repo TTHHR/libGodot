@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3 uid="uid://c3rk2g2lg0n5g"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4xowi"]
+size = Vector3(60, 2, 60)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4xowi"]
+size = Vector3(60, 2, 60)
+
+[node name="Node3D" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.969373, 0.245595, 0, -0.245595, 0.969373, 0, 1.20266, 0)
+light_color = Color(0.145169, 0.836684, 0.811331, 1)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.991565, 0.129609, 0, -0.129609, 0.991565, 0, 1.52797, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_4xowi")
+debug_color = Color(0, 0.6, 0.701961, 0.686275)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_4xowi")
+skeleton = NodePath("../CollisionShape3D")
