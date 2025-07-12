@@ -71,3 +71,11 @@ void godotLibWindowChange(int w,int h)
 
 
 }
+void godotLibSetGDValue(GD_TYPE p_name,char *paramName,void *val)
+{
+    embedded_os->setGDValue(p_name, paramName, val);
+}
+void godotLibGetGDValue(GD_TYPE p_name,char *paramName,void *val)
+{
+    embedded_os->getGDValue(p_name, paramName, val);
+}

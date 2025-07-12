@@ -1,0 +1,14 @@
+ea4bc82a6ad023ab7ee23ee620429895
+::res://::1752301120
+camera_3d.gd::GDScript/GDScript::86270833818949565::1752210695::0::1::::<>Camera3D<><>0<>0<><>::
+export_presets.cfg::TextFile/TextFile::-1::1751520435::0::1::::<><><>0<>0<><>::
+icon.svg::CompressedTexture2D/CompressedTexture2D::7911144549227065361::1751444994::1751445008::1::::<><><>0<>0<>bb38db3b2e2f10f31d2644760a083e99<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
+car.gd::GDScript::3774586514402725613::1752300881::0::1::::<>Node3D<><>0<>0<><>::
+root.tscn::PackedScene::2451571078691177764::1752300881::0::1::::<><><>0<>0<><>::uid://bbugcu8fbdo1d::::res://Assets/car.obj<>uid://bh14ro870acr::::res://camera_3d.gd<>uid://bt1o5hanity34::::res://car.gd
+::res://Assets/::1752301768
+car.glb::PackedScene::5330840572096587888::1752301768::1752301769::1::::<><><>0<>0<>3741f64bb0c7add8d71373eb3b49d54e<>res://.godot/imported/car.glb-13b1a973bb08a21670843f5cb5f14ae0.scn::uid://bthow5ys4kq1t::::res://Assets/car_mask.png<>uid://cl1kk6rfkyxn8::::res://Assets/car_mask_off.png
+car.obj::Mesh/Mesh::2498266057630934583::1752204545::1752205603::1::::<><><>0<>0<>9708b9cf35c807882f4835fea271722a<>res://.godot/imported/car.obj-020705d3578438abc0460e7e01bf1e0c.mesh<*>res://.godot/imported/car.obj-020705d3578438abc0460e7e01bf1e0c.mesh::uid://dls63q7nx0cr3::::res://Assets/mask.bmp<>uid://ckhnw3wj1tsy3::::res://Assets/mask_off.bmp
+mask.bmp::CompressedTexture2D/CompressedTexture2D::7970431250105558206::1752204890::1752205604::1::::<><><>0<>0<>aff5af5c5fe60d31a038249518c139bd<>res://.godot/imported/mask.bmp-bfcf71933c44afda5a18677464d1deb3.s3tc.ctex::
+mask_off.bmp::CompressedTexture2D/CompressedTexture2D::5490010561500749292::1748481055::1752205604::1::::<><><>0<>0<>da19947150362a536f3fdc94eebfd183<>res://.godot/imported/mask_off.bmp-fcc7e05d852ee58099457caf5c859e24.s3tc.ctex::
+car_mask.png::CompressedTexture2D::3735350296091587111::1752301769::1752301770::1::::<><><>0<>0<>4305768ed6e082f1de93cbe1917c4a1a<>res://.godot/imported/car_mask.png-e787d95eb009097a3d15ffe2bbf5b4dd.s3tc.ctex::
+car_mask_off.png::CompressedTexture2D::5599219151603866487::1752301769::1752301770::1::::<><><>0<>0<>d9d3eef6055ee3735200cfae900ea91f<>res://.godot/imported/car_mask_off.png-be5501d0394410bfd6edb2dc471020e2.s3tc.ctex::

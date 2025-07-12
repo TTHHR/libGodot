@@ -2,6 +2,12 @@
 #include "embedded_os.h"
 #include "main/main.h"
 #include "displayserver_embedded.h"
+#include "scene/main/scene_tree.h"
+#include "scene/main/window.h"
+#include "scene/property_list_helper.h"
+#include "scene/register_scene_types.h"
+#include "scene/resources/packed_scene.h"
+#include "scene/theme/theme_db.h"
 
 void EmbeddedOS::initialize() {
     DisplayServerEmbedded::register_display_driver();
@@ -48,6 +54,61 @@ Point2i EmbeddedOS::get_mouse_position() const {
 
 unsigned int EmbeddedOS::get_mouse_button_state() const {
     return mouse_button_state;
+}
+
+void EmbeddedOS::setGDValue(GD_TYPE p_name,char *paramName,void *value){
+    Variant val;
+    switch (p_name)
+        {
+        case TYPE_FLOAT:
+            val=*static_cast<float*>(value);
+            break;
+        case TYPE_BOOL:
+            val=*static_cast<bool*>(value);
+            break;
+        //todo add more
+        default:
+        log("not support type %d",static_cast<int>(p_name));
+            return;
+        }
+    SceneTree *scene_tree = SceneTree::get_singleton();
+    int cc=scene_tree->get_current_scene()->get_child_count();
+    for (size_t i = 0; i < cc; i++)
+    {
+        auto child=scene_tree->get_current_scene()->get_child(i);
+        if(child!=nullptr&&child->get_script_instance()!=nullptr)
+        {
+            child->get_script_instance()->set(paramName,val);
+        }
+    }
+}
+void EmbeddedOS::getGDValue(GD_TYPE p_name,char *paramName,void *value){
+    SceneTree *scene_tree = SceneTree::get_singleton();
+    int cc=scene_tree->get_current_scene()->get_child_count();
+    for (size_t i = 0; i < cc; i++)
+    {
+        auto child=scene_tree->get_current_scene()->get_child(i);
+        if(child!=nullptr&&child->get_script_instance()!=nullptr)
+        {
+            Variant val;
+            bool ret=child->get_script_instance()->get(paramName,val);
+            if(ret)
+            {
+                switch (p_name)
+                {
+                case TYPE_FLOAT:
+                        if(val.get_type()==Variant::FLOAT)
+                        {
+                            *static_cast<float*>(value)= val.operator float(); 
+                        }
+                    break;
+                //todo add more
+                default:
+                    break;
+                }
+            }
+        }
+    }
 }
 
 EmbeddedOS::EmbeddedOS() {

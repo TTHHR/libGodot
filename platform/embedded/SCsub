@@ -11,4 +11,6 @@ common_embedded = [
 if False==env_embedded['shared'] :
     common_embedded.append("embedded_main.cpp")
     env.Append(LIBS=["glfw","GLESv2"])
+else :
+    env.Append(CPPDEFINES=["DEBUG_ENABLED"])
 prog = env.add_program("#bin/godot",  common_embedded)

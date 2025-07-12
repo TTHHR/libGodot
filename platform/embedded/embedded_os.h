@@ -23,15 +23,18 @@ public:
     virtual bool _check_internal_feature_support(const String &p_feature) override;
     
     void set_logger(GODOT_LOGGER_NOTIFY func) { log_callback = func; }
-    void log(const char* format, ...) {
-        if (log_callback) {
-            va_list args;
-            char formatted_message[1024]; // 假设最大长度为1024
-            va_start(args, format);
-            sprintf(formatted_message,format, args);
-            log_callback("%s", formatted_message);
-            va_end(args);
-        }
+    void log(const char* fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        int len = vsnprintf(nullptr, 0, fmt, args);
+        va_end(args);
+        
+        std::string buf(len + 1, '\0');
+        va_start(args, fmt);
+        vsnprintf(&buf[0], buf.size(), fmt, args);
+        va_end(args);
+    
+        if (log_callback) log_callback(buf.c_str());
     }
 
     virtual MainLoop *get_main_loop() const override;
@@ -44,6 +47,8 @@ public:
         y = newY;
         mouse_button_state = newButtonState;
     }
+    void setGDValue(GD_TYPE p_name,char *paramName,void *value);
+    void getGDValue(GD_TYPE p_name,char *paramName,void *value);
 protected:
     GODOT_LOGGER_NOTIFY log_callback = nullptr;
     virtual void set_main_loop(MainLoop *p_main_loop) override;

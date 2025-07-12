@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3 uid="uid://ba6tauhksp0iy"]
+
+[ext_resource type="Script" uid="uid://bh14ro870acr" path="res://camera_3d.gd" id="1_vvh5c"]
+[ext_resource type="PackedScene" uid="uid://ch7kfvf8cqj7m" path="res://Assets/car.glb" id="2_vvh5c"]
+[ext_resource type="Script" uid="uid://dk2g3nx1sec75" path="res://car.gd" id="3_vvh5c"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_pyidc"]
+size = Vector3(60, 2, 60)
+
+[node name="root" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, 0.353553, -0.353553, 0, 0.707107, 0.707106, 0.5, -0.612372, 0.612372, 0, 0, 0)
+light_energy = 2.0
+light_specular = 1.5
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.18652, 0.331253, -0.924923, 0, 0.941444, 0.33717, 0.982451, -0.0628891, 0.175598, -13.7446, 12.5451, 5.81275)
+fov = 80.7
+script = ExtResource("1_vvh5c")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_pyidc")
+
+[node name="car" parent="." instance=ExtResource("2_vvh5c")]
+transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 2, 0)
+script = ExtResource("3_vvh5c")
+
+[node name="door_fl" parent="car" index="5"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+
+[editable path="car"]
