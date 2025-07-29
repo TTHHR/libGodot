@@ -97,6 +97,8 @@ def configure(env: "SConsEnvironment"):
     if env["arch"] == "rv64":
         # G = General-purpose extensions, C = Compression extension (very common).
         env.Append(CCFLAGS=["-march=rv64gc"])
+    elif env["arch"] == "arm64":
+        env.Append(CPPDEFINES=["ZSTD_DISABLE_ASM"])
 
     ## Compiler configuration
 

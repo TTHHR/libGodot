@@ -359,7 +359,8 @@ def configure(env: "SConsEnvironment"):
     # Linkflags below this line should typically stay the last ones
     if not env["builtin_zlib"]:
         env.ParseConfig("pkg-config zlib --cflags --libs")
-
+    if env["use_sowrap"]:
+        env.Prepend(CPPEXTPATH=["#thirdparty/linuxbsd_headers"])
 
     if env["x11"]:
         if not env["use_sowrap"]:
@@ -455,7 +456,10 @@ def configure(env: "SConsEnvironment"):
 
     env.Append(LIBS=["pthread"])
     env.Append(CPPDEFINES=["EMBEDDED_ENABLED", "UNIX_ENABLED"])
-    env.Append(LIBS=["dl","EGL"])
+    env.Append(LIBS=["dl"])
+    if env["arch"] != "arm64":
+        #arm egl need load libEGL.so at runtime
+        env.Append(LIBS=["EGL"])
 
     if platform.libc_ver()[0] != "glibc":
         if env["execinfo"]:
