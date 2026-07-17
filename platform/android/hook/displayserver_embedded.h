@@ -1,11 +1,15 @@
 #pragma once
 #include "servers/display_server.h"
+#include "core/input/input_event.h"
 #include "servers/rendering/renderer_compositor.h"
 #include "servers/rendering_server.h"
 class DisplayServerEmbedded : public DisplayServer {
     GDSOFTCLASS(DisplayServerEmbedded, DisplayServer);
 
 private:
+    static void _dispatch_input_events(const Ref<InputEvent> &p_event);
+    void _dispatch_input_event(const Ref<InputEvent> &p_event);
+
     struct WindowData {
         Size2i size;
     };
@@ -25,6 +29,9 @@ private:
 	Callable input_dialog_callback;
 
 	Callable file_picker_callback;
+
+    Point2i mouse_position;
+    BitField<MouseButtonMask> mouse_button_state;
     
 public:
     // 构造/析构函数

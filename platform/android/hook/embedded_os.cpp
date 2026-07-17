@@ -31,15 +31,37 @@ void EmbeddedOS::initialize_joypads() {
 void EmbeddedOS::finalize() {
     delete_main_loop();
 }
-Size2i EmbeddedOS::get_display_size()
+Size2i EmbeddedOS::get_display_size() const
 {
-    // 返回默认显示大小或自定义大小
-    return Size2i(800, 600); // 示例值
+    return display_size;
+}
+
+void EmbeddedOS::set_display_size(const Size2i &p_size)
+{
+    if (p_size.width <= 0 || p_size.height <= 0) {
+        return;
+    }
+    display_size = p_size;
 }
 
 bool EmbeddedOS::_check_internal_feature_support(const String &p_feature) {
     // 返回 false 或自定义支持
     return false;
+}
+
+void EmbeddedOS::push_input_event(const EmbeddedInputEvent &p_event) {
+    std::lock_guard<std::mutex> lock(input_mutex);
+    input_events.push_back(p_event);
+}
+
+bool EmbeddedOS::pop_input_event(EmbeddedInputEvent &r_event) {
+    std::lock_guard<std::mutex> lock(input_mutex);
+    if (input_events.empty()) {
+        return false;
+    }
+    r_event = input_events.front();
+    input_events.pop_front();
+    return true;
 }
 
 EmbeddedOS::EmbeddedOS() {

@@ -24,9 +24,9 @@ project("godottest")
 # System.loadLibrary() and pass the name of the library defined here;
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
-add_library(godot-lib STATIC IMPORTED)
+add_library(godot-lib SHARED IMPORTED)
 set_target_properties(godot-lib PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/libs/libgodot_android.so)
-add_library(godot-c++ STATIC IMPORTED)
+add_library(godot-c++ SHARED IMPORTED)
 set_target_properties(godot-c++ PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/libs/libc++_shared.so)
 include_directories(${CMAKE_SOURCE_DIR}/)
 include_directories(${CMAKE_SOURCE_DIR}/libs)

@@ -5,10 +5,7 @@ import static android.opengl.GLES10.glClear;
 import static android.opengl.GLES10.glClearColor;
 
 
-import androidx.activity.result.ActivityResultLauncher;
-
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.core.splashscreen.SplashScreen;
 
 
@@ -16,9 +13,11 @@ import android.opengl.EGL14;
 import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
 import android.opengl.GLSurfaceView;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.View;
 
 
 import com.example.godottest.databinding.ActivityMainBinding;
@@ -38,8 +37,6 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
     private ActivityMainBinding binding;
     private GLSurfaceView           mSurfaceView;
-    private ActivityResultLauncher<String[]> requestPermissionLauncher;
-    boolean hasPermission=false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,8 +70,107 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         mSurfaceView.setEGLContextClientVersion(2);
         mSurfaceView.setRenderer(this);
         mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        mSurfaceView.onResume();
+        mSurfaceView.setFocusable(true);
+        mSurfaceView.setFocusableInTouchMode(true);
+        mSurfaceView.requestFocus();
+        mSurfaceView.setOnTouchListener(this::onGodotTouch);
+        mSurfaceView.setOnKeyListener(this::onGodotKey);
+        mSurfaceView.setOnGenericMotionListener(this::onGodotGenericMotion);
 
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mSurfaceView.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mSurfaceView.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        nativeShutdown();
+        super.onDestroy();
+    }
+
+    private boolean onGodotTouch(View view, MotionEvent event) {
+        int actionMasked = event.getActionMasked();
+        int pointerIndex = actionMasked == MotionEvent.ACTION_MOVE ? 0 : event.getActionIndex();
+        if (pointerIndex < 0 || pointerIndex >= event.getPointerCount()) {
+            return true;
+        }
+
+        switch (actionMasked) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_POINTER_DOWN:
+                nativeTouchEvent(0, event.getX(pointerIndex), event.getY(pointerIndex), 0);
+                break;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP:
+                nativeTouchEvent(1, event.getX(pointerIndex), event.getY(pointerIndex), 0);
+                break;
+            case MotionEvent.ACTION_MOVE:
+                nativeTouchEvent(2, event.getX(pointerIndex), event.getY(pointerIndex), 0);
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                nativeTouchEvent(3, event.getX(pointerIndex), event.getY(pointerIndex), 0);
+                break;
+            default:
+                break;
+        }
+
+        view.requestFocus();
+        return true;
+    }
+
+    private boolean onGodotKey(View view, int keyCode, KeyEvent event) {
+        int action = event.getAction();
+        if (action != KeyEvent.ACTION_DOWN && action != KeyEvent.ACTION_UP) {
+            return false;
+        }
+
+        boolean pressed = action == KeyEvent.ACTION_DOWN;
+        boolean echo = pressed && event.getRepeatCount() > 0;
+        nativeKeyEvent(keyCode, event.getUnicodeChar(), pressed, echo, modifiersFromKeyEvent(event));
+        return true;
+    }
+
+    private boolean onGodotGenericMotion(View view, MotionEvent event) {
+        if (event.getActionMasked() == MotionEvent.ACTION_SCROLL) {
+            nativeMouseWheel(
+                    event.getX(),
+                    event.getY(),
+                    event.getAxisValue(MotionEvent.AXIS_HSCROLL),
+                    event.getAxisValue(MotionEvent.AXIS_VSCROLL),
+                    0);
+            return true;
+        }
+        if (event.getActionMasked() == MotionEvent.ACTION_HOVER_MOVE) {
+            nativeTouchEvent(2, event.getX(), event.getY(), 0);
+            return true;
+        }
+        return false;
+    }
+
+    private int modifiersFromKeyEvent(KeyEvent event) {
+        int modifiers = 0;
+        if (event.isShiftPressed()) {
+            modifiers |= 1;
+        }
+        if (event.isAltPressed()) {
+            modifiers |= 2;
+        }
+        if (event.isCtrlPressed()) {
+            modifiers |= 4;
+        }
+        if (event.isMetaPressed()) {
+            modifiers |= 8;
+        }
+        return modifiers;
     }
 
 
@@ -113,4 +209,8 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     private native void nativeInitEgl(String execPath,String projPath);
     private native boolean nativeUpdateFrame();
     private native  void nativeSizeChange(int w,int h);
+    private native void nativeTouchEvent(int action, float x, float y, int modifiers);
+    private native void nativeMouseWheel(float x, float y, float wheelX, float wheelY, int modifiers);
+    private native void nativeKeyEvent(int keyCode, int unicode, boolean pressed, boolean echo, int modifiers);
+    private native void nativeShutdown();
 }
