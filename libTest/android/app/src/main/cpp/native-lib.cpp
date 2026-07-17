@@ -10,6 +10,8 @@
 
 #include "embedded_export.h"
 #include "android/log.h"
+#include "imgui.h"
+#include "imgui_impl_opengl3.h"
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_example_godottest_MainActivity_stringFromJNI(
         JNIEnv* env,
@@ -58,6 +60,9 @@ constexpr uint32_t GODOT_KEY_BACK = GODOT_KEY_SPECIAL | 0x48;
 constexpr uint32_t GODOT_KEY_MENU = GODOT_KEY_SPECIAL | 0x42;
 
 GODOT_LIB_STEP_TYPE godot_step = GODOT_LIB_SETUP2;
+bool imgui_initialized = false;
+int surface_width = 0;
+int surface_height = 0;
 
 uint32_t godotKeyFromAndroid(int keycode, int unicode) {
     if (unicode >= 32 && unicode <= 126) {
@@ -161,12 +166,72 @@ uint32_t godotKeyFromAndroid(int keycode, int unicode) {
     }
 }
 
+void initImGui() {
+    if (imgui_initialized) {
+        return;
+    }
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.LogFilename = nullptr;
+    io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
+    ImGui::StyleColorsDark();
+    ImGui_ImplOpenGL3_Init("#version 100");
+    imgui_initialized = true;
+}
+
+void shutdownImGui() {
+    if (!imgui_initialized) {
+        return;
+    }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui::DestroyContext();
+    imgui_initialized = false;
+}
+
+void renderFpsOverlay() {
+    if (!imgui_initialized || surface_width <= 0 || surface_height <= 0) {
+        return;
+    }
+
+    ImGuiIO &io = ImGui::GetIO();
+    io.DisplaySize = ImVec2((float)surface_width, (float)surface_height);
+    io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui::NewFrame();
+
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration
+            | ImGuiWindowFlags_AlwaysAutoResize
+            | ImGuiWindowFlags_NoSavedSettings
+            | ImGuiWindowFlags_NoFocusOnAppearing
+            | ImGuiWindowFlags_NoNav
+            | ImGuiWindowFlags_NoMove
+            | ImGuiWindowFlags_NoInputs;
+    ImGui::SetNextWindowPos(ImVec2(12.0f, 12.0f), ImGuiCond_Always);
+    ImGui::SetNextWindowBgAlpha(0.55f);
+    if (ImGui::Begin("FPS", nullptr, flags)) {
+        ImGui::Text("FPS %.1f", io.Framerate);
+        if (io.Framerate > 0.0f) {
+            ImGui::Text("%.2f ms", 1000.0f / io.Framerate);
+        }
+    }
+    ImGui::End();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
 }
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_godottest_MainActivity_nativeInitEgl(JNIEnv *env, jobject thiz,jstring execPath,jstring projPath) {
     initGodotOs(logger);
     godot_step = GODOT_LIB_SETUP2;
+    initImGui();
 // 1. 转换 jstring 为 const char*
     const char* nativeExecPath = env->GetStringUTFChars(execPath, 0);
     const char* nativeProjectPath = env->GetStringUTFChars(projPath, 0);
@@ -222,12 +287,15 @@ Java_com_example_godottest_MainActivity_nativeUpdateFrame(JNIEnv *env, jobject t
     {
         godot_step = GODOT_LIB_RUN;
     }
+    renderFpsOverlay();
     return swap;
 }
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_godottest_MainActivity_nativeSizeChange(JNIEnv *env, jobject thiz, jint w,
                                                          jint h) {
+    surface_width = w;
+    surface_height = h;
     glViewport(0, 0, w, h);
     godotLibWindowChange(w, h);
 }
@@ -279,6 +347,9 @@ Java_com_example_godottest_MainActivity_nativeKeyEvent(JNIEnv *env, jobject thiz
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_godottest_MainActivity_nativeShutdown(JNIEnv *env, jobject thiz) {
+    shutdownImGui();
     godotLibShutdown();
     godot_step = GODOT_LIB_SETUP2;
+    surface_width = 0;
+    surface_height = 0;
 }

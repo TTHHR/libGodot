@@ -1,122 +1,104 @@
-# Godot引擎库项目说明
+# Godot Embedded Library
 
-## 项目概述
-- Godot Engine的库工程项目
-- 编译产物为`.so`共享库文件
-- 生成的库文件可集成到其他工程项目中使用
+这个仓库是我基于 Godot Engine 做的一套“可嵌入式 Godot 运行库”实验工程：目标不是做一个普通 Godot 编辑器分支，而是把 Godot Runtime 做成可以被外部宿主程序集成的库，让现有 Linux/Android 应用也能加载、渲染和驱动 Godot 项目。
 
-## 文字记录放在微信公众号平台
-[文字记录集合链接](https://mp.weixin.qq.com/mp/appmsgalbum?__biz=Mzk0ODMyMjA5NA==&action=getalbum&album_id=3966264523844960262#wechat_redirect)
+核心思路是：宿主程序负责窗口、EGL/OpenGL 上下文、系统输入和生命周期，Godot 作为渲染与交互引擎被嵌入进去运行。
 
----
-
-## 编译指南
-### 环境要求
-- **平台**: Ubuntu 22.04
-
-### 编译步骤
-1. 执行根目录下的构建脚本：
-   ```bash
-   ./build.sh
-
-### 产物输出：
-生成 .so 共享库文件
-### Android平台编译
-修改build.sh脚本中的目标平台参数：
-
-platform="android"  # 修改此参数
-
-## 测试方法
-### 测试工程位置
-  项目根目录/libTest/ 
-### 环境准备
-  需要安装以下依赖库：
-
-  GLFW
-  CMake构建系统
-### 测试步骤
- 进入测试目录：
- cd libTest/
- 执行CMake构建：
- mkdir build && cd build
- cmake .. && make
-
-
-# Godot Engine
+## Demo
 
 <p align="center">
-  <a href="https://godotengine.org">
-    <img src="logo_outlined.svg" width="400" alt="Godot Engine logo">
-  </a>
+  <img src="libTest/android/char.gif" width="360" alt="Android embedded Godot demo">
 </p>
 
-## 2D and 3D cross-platform game engine
+## 我做了什么
 
-**[Godot Engine](https://godotengine.org) is a feature-packed, cross-platform
-game engine to create 2D and 3D games from a unified interface.** It provides a
-comprehensive set of [common tools](https://godotengine.org/features), so that
-users can focus on making games without having to reinvent the wheel. Games can
-be exported with one click to a number of platforms, including the major desktop
-platforms (Linux, macOS, Windows), mobile platforms (Android, iOS), as well as
-Web-based platforms and [consoles](https://docs.godotengine.org/en/latest/tutorials/platform/consoles.html).
+- 新增 `platform/embedded`，让 Godot 可以作为宿主无关的嵌入式平台运行。
+- 增加 C ABI，用于外部程序初始化 Godot、驱动帧循环、同步窗口尺寸、关闭运行时。
+- 打通外部输入到 Godot 输入管线，包括鼠标移动、点击、拖动、滚轮、键盘、文本输入。
+- 实现 Linux GLFW 测试宿主，可以在普通桌面窗口里运行 Godot 项目，并保留 ImGui 调试 UI。
+- 实现 Android 测试宿主，可以让用户选择手机存储里的 Godot 项目目录，然后直接传给 native 层运行。
+- 修复嵌入式窗口 resize，让 Godot 画面跟随宿主窗口或 Surface 尺寸变化。
+- 为测试项目增加键鼠/触摸反馈，便于验证 Godot UI 控件、输入 action 和文本控件是否正常。
+- Android demo 增加 ImGui FPS overlay，用于观察运行时帧率。
 
-## Free, open source and community-driven
+## 为什么有价值
 
-Godot is completely free and open source under the very permissive [MIT license](https://godotengine.org/license).
-No strings attached, no royalties, nothing. The users' games are theirs, down
-to the last line of engine code. Godot's development is fully independent and
-community-driven, empowering users to help shape their engine to match their
-expectations. It is supported by the [Godot Foundation](https://godot.foundation/)
-not-for-profit.
+传统 Godot 用法通常是“Godot 控制整个应用”。这个工程尝试反过来：让已有应用控制外壳，把 Godot 当作一个可嵌入的实时 2D/3D 内容引擎使用。
 
-Before being open sourced in [February 2014](https://github.com/godotengine/godot/commit/0b806ee0fc9097fa7bda7ac0109191c9c5e0a1ac),
-Godot had been developed by [Juan Linietsky](https://github.com/reduz) and
-[Ariel Manzur](https://github.com/punto-) (both still maintaining the project)
-for several years as an in-house engine, used to publish several work-for-hire
-titles.
+它适合这些场景：
 
-![Screenshot of a 3D scene in the Godot Engine editor](https://raw.githubusercontent.com/godotengine/godot-design/master/screenshots/editor_tps_demo_1920x1080.jpg)
+- 已有 Android/Linux 原生应用，希望嵌入 Godot 3D/2D 交互内容。
+- 车机、座舱、HMI、展厅大屏、工业控制屏等需要宿主程序统一管理窗口和生命周期。
+- 业务主程序不想完全迁移到 Godot，但希望使用 Godot 的渲染、动画、UI、脚本和资源管线。
+- 需要把 Godot 项目作为可替换内容包，由外部应用选择路径并加载运行。
+- 需要用 C/C++/Java/Kotlin/其他宿主代码驱动 Godot，而不是让 Godot 独占应用入口。
 
-## Getting the engine
+## 当前优势
 
-### Binary downloads
+- **宿主可控**：窗口、Surface、EGL 上下文、输入、生命周期都由外部宿主管理。
+- **平台拆分清晰**：`platform/embedded` 保持宿主无关，Linux/Android demo 只负责各自系统事件转换。
+- **输入链路完整**：鼠标、滚轮、键盘、文本输入、Android 触摸都能进入 Godot UI 和 `_input`。
+- **尺寸同步可用**：宿主窗口或 Android Surface 改变后，Godot viewport 会同步更新。
+- **验证工程齐全**：包含 Linux GLFW demo、Android demo、2D 输入反馈项目和 3D 角色项目。
+- **适合集成验证**：可以快速判断一个现有 App 是否适合嵌入 Godot Runtime。
 
-Official binaries for the Godot editor and the export templates can be found
-[on the Godot website](https://godotengine.org/download).
+## 目录说明
 
-### Compiling from source
+- `platform/embedded/`：新增的嵌入式 Godot platform。
+- `platform/android/hook/`：Android demo 使用的 Godot hook 层。
+- `libTest/linux/`：Linux GLFW + ImGui 测试宿主。
+- `libTest/android/`：Android GLSurfaceView + JNI 测试宿主。
+- `libTest/testProj/`：输入反馈测试 Godot 项目。
+- `libTest/char/`：3D 角色展示测试 Godot 项目。
 
-[See the official docs](https://docs.godotengine.org/en/latest/contributing/development/compiling)
-for compilation instructions for every supported platform.
+## 构建
 
-## Community and contributing
+根目录 `build.sh` 用于构建当前测试目标。由于 Godot 原生并不直接以这种方式产出可嵌入动态库，这个工程里的构建脚本承担了对应配置。
 
-Godot is not only an engine but an ever-growing community of users and engine
-developers. The main community channels are listed [on the homepage](https://godotengine.org/community).
+```bash
+./build.sh
+```
 
-The best way to get in touch with the core engine developers is to join the
-[Godot Contributors Chat](https://chat.godotengine.org).
+Android demo：
 
-To get started contributing to the project, see the [contributing guide](CONTRIBUTING.md).
-This document also includes guidelines for reporting bugs.
+```bash
+cd libTest/android
+./gradlew assemble
+```
 
-## Documentation and demos
+Linux demo：
 
-The official documentation is hosted on [Read the Docs](https://docs.godotengine.org).
-It is maintained by the Godot community in its own [GitHub repository](https://github.com/godotengine/godot-docs).
+```bash
+cd libTest/linux
+cmake -S . -B build
+cmake --build build
+```
 
-The [class reference](https://docs.godotengine.org/en/latest/classes/)
-is also accessible from the Godot editor.
+## 记录
 
-We also maintain official demos in their own [GitHub repository](https://github.com/godotengine/godot-demo-projects)
-as well as a list of [awesome Godot community resources](https://github.com/godotengine/awesome-godot).
+相关开发记录放在微信公众号平台：
 
-There are also a number of other
-[learning resources](https://docs.godotengine.org/en/latest/community/tutorials.html)
-provided by the community, such as text and video tutorials, demos, etc.
-Consult the [community channels](https://godotengine.org/community)
-for more information.
+[文字记录集合链接](https://mp.weixin.qq.com/mp/appmsgalbum?__biz=Mzk0ODMyMjA5NA==&action=getalbum&album_id=3966264523844960262#wechat_redirect)
 
-[![Code Triagers Badge](https://www.codetriage.com/godotengine/godot/badges/users.svg)](https://www.codetriage.com/godotengine/godot)
-[![Translate on Weblate](https://hosted.weblate.org/widgets/godot-engine/-/godot/svg-badge.svg)](https://hosted.weblate.org/engage/godot-engine/?utm_source=widget)
-[![TODOs](https://badgen.net/https/api.tickgit.com/badgen/github.com/godotengine/godot)](https://www.tickgit.com/browse?repo=github.com/godotengine/godot)
+## 合作与招聘
+
+如果你有下面这些需求，可以联系我：
+
+- 想把 Godot 嵌入现有 Android/Linux 应用。
+- 想做车机、HMI、工业屏、展厅屏、数字人、3D 可视化等实时交互项目。
+- 想评估 Godot 是否适合作为你们业务里的嵌入式渲染/交互引擎。
+- 团队在招图形、引擎、跨平台客户端、Android native、Linux 图形栈相关工程师。
+
+联系方式：
+
+- Email: `harrytit@foxmail.com`
+- 也可以通过上面的微信公众号记录入口找到我。
+
+## 说明
+
+本仓库基于 Godot Engine 修改，原始 Godot Engine 仍然遵循其官方开源协议和社区规则。本工程重点展示的是 Godot Runtime 嵌入宿主应用的工程化探索。
+
+更多 Godot 官方信息请访问：
+
+- https://godotengine.org
+- https://docs.godotengine.org

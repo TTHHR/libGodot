@@ -30,9 +30,16 @@ add_library(godot-c++ SHARED IMPORTED)
 set_target_properties(godot-c++ PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/libs/libc++_shared.so)
 include_directories(${CMAKE_SOURCE_DIR}/)
 include_directories(${CMAKE_SOURCE_DIR}/libs)
+include_directories(${CMAKE_SOURCE_DIR}/../../../../../linux/imgui)
 add_library(${CMAKE_PROJECT_NAME} SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.
-        native-lib.cpp)
+        native-lib.cpp
+        ../../../../../linux/imgui/imgui.cpp
+        ../../../../../linux/imgui/imgui_draw.cpp
+        ../../../../../linux/imgui/imgui_tables.cpp
+        ../../../../../linux/imgui/imgui_widgets.cpp
+        ../../../../../linux/imgui/imgui_impl_opengl3.cpp)
+target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE IMGUI_IMPL_OPENGL_ES2)
 
 # Specifies libraries CMake should link to your target library. You
 # can link libraries from various origins, such as libraries defined in this

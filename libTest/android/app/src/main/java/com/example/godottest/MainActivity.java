@@ -5,19 +5,27 @@ import static android.opengl.GLES10.glClear;
 import static android.opengl.GLES10.glClearColor;
 
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 
 
-import android.opengl.EGL14;
-import android.opengl.EGLDisplay;
-import android.opengl.EGLSurface;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.net.Uri;
 import android.opengl.GLSurfaceView;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 
 import com.example.godottest.databinding.ActivityMainBinding;
@@ -27,6 +35,7 @@ import com.example.godottest.databinding.ActivityMainBinding;
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity implements GLSurfaceView.Renderer{
 
@@ -37,10 +46,30 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
     private ActivityMainBinding binding;
     private GLSurfaceView           mSurfaceView;
+    private ActivityResultLauncher<Intent> allFilesAccessLauncher;
+    private ActivityResultLauncher<Intent> projectFolderLauncher;
+    private String projectPath;
+    private boolean surfaceReady = false;
+    private boolean godotInitialized = false;
+    private int surfaceWidth = 0;
+    private int surfaceHeight = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SplashScreen.installSplashScreen(this);
+        allFilesAccessLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (hasAllFilesAccess()) {
+                        openProjectFolderPicker();
+                    } else {
+                        Toast.makeText(this, "需要所有文件访问权限才能直接读取 Godot 项目目录", Toast.LENGTH_LONG).show();
+                    }
+                });
+        projectFolderLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                this::onProjectFolderSelected);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -77,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         mSurfaceView.setOnKeyListener(this::onGodotKey);
         mSurfaceView.setOnGenericMotionListener(this::onGodotGenericMotion);
 
+        requestProjectFolder();
     }
 
     @Override
@@ -93,8 +123,116 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
     @Override
     protected void onDestroy() {
-        nativeShutdown();
+        if (godotInitialized) {
+            nativeShutdown();
+            godotInitialized = false;
+        }
         super.onDestroy();
+    }
+
+    private void requestProjectFolder() {
+        if (hasAllFilesAccess()) {
+            openProjectFolderPicker();
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            try {
+                allFilesAccessLauncher.launch(intent);
+            } catch (ActivityNotFoundException ignored) {
+                allFilesAccessLauncher.launch(new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
+            }
+        } else {
+            openProjectFolderPicker();
+        }
+    }
+
+    private boolean hasAllFilesAccess() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.R || Environment.isExternalStorageManager();
+    }
+
+    private void openProjectFolderPicker() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+                | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
+        projectFolderLauncher.launch(intent);
+    }
+
+    private void onProjectFolderSelected(ActivityResult result) {
+        if (result.getResultCode() != RESULT_OK || result.getData() == null || result.getData().getData() == null) {
+            Toast.makeText(this, "没有选择 Godot 项目目录", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Uri treeUri = result.getData().getData();
+        int flags = result.getData().getFlags()
+                & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        try {
+            getContentResolver().takePersistableUriPermission(treeUri, flags);
+        } catch (SecurityException ignored) {
+        }
+
+        String selectedPath = pathFromTreeUri(treeUri);
+        if (selectedPath == null) {
+            Toast.makeText(this, "当前目录不能转换为 native 可访问路径", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        projectPath = ensureTrailingSlash(selectedPath);
+        Log.d("path", "Godot project path: " + projectPath);
+        if (mSurfaceView != null) {
+            mSurfaceView.queueEvent(this::tryInitGodot);
+        }
+    }
+
+    private String pathFromTreeUri(Uri treeUri) {
+        String docId = DocumentsContract.getTreeDocumentId(treeUri);
+        if (docId == null || docId.isEmpty()) {
+            return null;
+        }
+        if (docId.startsWith("raw:")) {
+            return docId.substring(4);
+        }
+
+        String[] parts = docId.split(":", 2);
+        String volume = parts[0];
+        String relativePath = parts.length > 1 ? parts[1] : "";
+        File baseDir;
+        if ("primary".equalsIgnoreCase(volume)) {
+            baseDir = Environment.getExternalStorageDirectory();
+        } else if ("home".equalsIgnoreCase(volume)) {
+            baseDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+        } else {
+            baseDir = new File("/storage/" + volume);
+        }
+
+        if (relativePath.isEmpty()) {
+            return baseDir.getAbsolutePath();
+        }
+        return new File(baseDir, relativePath).getAbsolutePath();
+    }
+
+    private String ensureTrailingSlash(String path) {
+        if (path.endsWith(File.separator)) {
+            return path;
+        }
+        return path + File.separator;
+    }
+
+    private void tryInitGodot() {
+        if (!surfaceReady || godotInitialized || projectPath == null) {
+            return;
+        }
+
+        nativeInitEgl("apk", projectPath);
+        godotInitialized = true;
+        if (surfaceWidth > 0 && surfaceHeight > 0) {
+            nativeSizeChange(surfaceWidth, surfaceHeight);
+        }
     }
 
     private boolean onGodotTouch(View view, MotionEvent event) {
@@ -174,37 +312,30 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     }
 
 
-    private EGLDisplay eglDisplay;
-    private EGLSurface eglSurface;
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        eglDisplay = EGL14.eglGetCurrentDisplay();
-        eglSurface = EGL14.eglGetCurrentSurface(EGL14.EGL_DRAW);
-        Log.d("path",getExternalFilesDir(null)+"/car/");
-        nativeInitEgl("apk",getExternalFilesDir(null)+"/car/");
+        surfaceReady = true;
+        tryInitGodot();
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        nativeSizeChange(width,height);
+        surfaceWidth = width;
+        surfaceHeight = height;
+        if (godotInitialized) {
+            nativeSizeChange(width,height);
+        }
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        {
-
-            //while(true)
-            {
-                glClearColor(0f,1.0f,0,1);
-                glClear(GL_COLOR_BUFFER_BIT);
-                boolean swap=nativeUpdateFrame();
-                // 手动交换缓冲区
-             if(swap)
-                    EGL14.eglSwapBuffers(eglDisplay, eglSurface);
-            }
+        if (!godotInitialized) {
+            glClearColor(0f, 0f, 0f, 1f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            return;
         }
 
-
+        nativeUpdateFrame();
     }
     private native void nativeInitEgl(String execPath,String projPath);
     private native boolean nativeUpdateFrame();
