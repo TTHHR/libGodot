@@ -5,13 +5,41 @@
 #include "drivers/unix/os_unix.h"
 #include "embedded_export.h"
 
+#include <deque>
+#include <mutex>
+#include <stdint.h>
+
 
 class EmbeddedOS : public OS_Unix {
     virtual void delete_main_loop() override;
+public:
+    struct EmbeddedInputEvent {
+        enum Type {
+            MOUSE_MOVE,
+            MOUSE_BUTTON,
+            MOUSE_WHEEL,
+            KEY,
+            TEXT,
+        };
+
+        Type type = MOUSE_MOVE;
+        float x = 0;
+        float y = 0;
+        float wheel_x = 0;
+        float wheel_y = 0;
+        int button = 0;
+        uint32_t keycode = 0;
+        uint32_t physical_keycode = 0;
+        uint32_t unicode = 0;
+        uint32_t modifiers = 0;
+        bool pressed = false;
+        bool echo = false;
+    };
+
 private:
     MainLoop *main_loop = nullptr;
-    double x, y;//mouse
-    unsigned int mouse_button_state = 0;
+    std::mutex input_mutex;
+    std::deque<EmbeddedInputEvent> input_events;
 public:
     EmbeddedOS();
     ~EmbeddedOS();
@@ -40,13 +68,8 @@ public:
     virtual MainLoop *get_main_loop() const override;
     Size2i get_display_size();
     bool should_swap_buffers;
-    virtual Point2i get_mouse_position() const ;
-    virtual unsigned int get_mouse_button_state() const;
-    void setMouseState(double newX, double newY, unsigned int newButtonState) {
-        x = newX;
-        y = newY;
-        mouse_button_state = newButtonState;
-    }
+    void push_input_event(const EmbeddedInputEvent &p_event);
+    bool pop_input_event(EmbeddedInputEvent &r_event);
     void setGDValue(GD_TYPE p_name,char *paramName,void *value);
     void getGDValue(GD_TYPE p_name,char *paramName,void *value);
 protected:

@@ -48,12 +48,19 @@ bool EmbeddedOS::_check_internal_feature_support(const String &p_feature) {
     return false;
 }
 
-Point2i EmbeddedOS::get_mouse_position() const {
-    return Point2i((int)x, (int)y);
+void EmbeddedOS::push_input_event(const EmbeddedInputEvent &p_event) {
+    std::lock_guard<std::mutex> lock(input_mutex);
+    input_events.push_back(p_event);
 }
 
-unsigned int EmbeddedOS::get_mouse_button_state() const {
-    return mouse_button_state;
+bool EmbeddedOS::pop_input_event(EmbeddedInputEvent &r_event) {
+    std::lock_guard<std::mutex> lock(input_mutex);
+    if (input_events.empty()) {
+        return false;
+    }
+    r_event = input_events.front();
+    input_events.pop_front();
+    return true;
 }
 
 void EmbeddedOS::setGDValue(GD_TYPE p_name,char *paramName,void *value){

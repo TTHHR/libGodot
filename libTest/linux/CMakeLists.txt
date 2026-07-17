@@ -27,8 +27,10 @@ add_executable(libTest
         imgui/imgui_impl_opengl3.cpp
         imgui/imgui_impl_glfw.cpp
 )
-add_library(godot-lib STATIC IMPORTED)
-set_target_properties(godot-lib PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../bin/godot.embedded.template_debug.dev.x86_64)
+set(GODOT_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../bin/libgodot.embedded.template_debug.dev.x86_64.so)
+add_library(godot-lib SHARED IMPORTED)
+set_target_properties(godot-lib PROPERTIES IMPORTED_LOCATION ${GODOT_LIB_PATH})
+set_target_properties(libTest PROPERTIES BUILD_RPATH ${CMAKE_CURRENT_SOURCE_DIR}/../../bin)
 target_link_libraries(libTest
         glfw
         EGL

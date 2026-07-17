@@ -1,9 +1,8 @@
 extends CheckButton
 
 func _ready():
-	# 可选：这里可以初始化一些属性
-	pass
+	text = "Click target: off"
 
 func _pressed():
-	# 打印日志
-	print("button click")
+	text = "Click target: %s" % ("on" if button_pressed else "off")
+	print("button click: ", button_pressed)

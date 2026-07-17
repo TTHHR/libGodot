@@ -6,6 +6,9 @@ class DisplayServerEmbedded : public DisplayServer {
     GDSOFTCLASS(DisplayServerEmbedded, DisplayServer);
 
 private:
+    static void _dispatch_input_events(const Ref<InputEvent> &p_event);
+    void _dispatch_input_event(const Ref<InputEvent> &p_event);
+
     struct WindowData {
         Size2i size;
     };
