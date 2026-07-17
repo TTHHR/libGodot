@@ -118,8 +118,16 @@ void godotLibShutdown()
 
 void godotLibWindowChange(int w,int h)
 {
+    if (!embedded_os || w <= 0 || h <= 0) {
+        return;
+    }
 
+    Size2i size(w, h);
+    embedded_os->set_display_size(size);
 
+    if (DisplayServer::get_singleton()) {
+        DisplayServer::get_singleton()->window_set_size(size, DisplayServer::MAIN_WINDOW_ID);
+    }
 }
 
 void godotLibMouseMove(float x, float y, uint32_t modifiers)

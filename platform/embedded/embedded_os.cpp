@@ -37,10 +37,17 @@ void EmbeddedOS::initialize_joypads() {
 void EmbeddedOS::finalize() {
     delete_main_loop();
 }
-Size2i EmbeddedOS::get_display_size()
+Size2i EmbeddedOS::get_display_size() const
 {
-    // 返回默认显示大小或自定义大小
-    return Size2i(800, 600); // 示例值
+    return display_size;
+}
+
+void EmbeddedOS::set_display_size(const Size2i &p_size)
+{
+    if (p_size.width <= 0 || p_size.height <= 0) {
+        return;
+    }
+    display_size = p_size;
 }
 
 bool EmbeddedOS::_check_internal_feature_support(const String &p_feature) {

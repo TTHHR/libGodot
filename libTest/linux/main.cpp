@@ -243,12 +243,26 @@ void godotCharCallback(GLFWwindow *window, unsigned int codepoint) {
     }
 }
 
+void godotWindowSizeCallback(GLFWwindow *window, int width, int height) {
+    (void)window;
+    godotLibWindowChange(width, height);
+}
+
+void godotFramebufferSizeCallback(GLFWwindow *window, int width, int height) {
+    (void)window;
+    if (width > 0 && height > 0) {
+        glViewport(0, 0, width, height);
+    }
+}
+
 void installGodotInputCallbacks(GLFWwindow *window) {
     glfwSetCursorPosCallback(window, godotCursorPosCallback);
     glfwSetMouseButtonCallback(window, godotMouseButtonCallback);
     glfwSetScrollCallback(window, godotScrollCallback);
     glfwSetKeyCallback(window, godotKeyCallback);
     glfwSetCharCallback(window, godotCharCallback);
+    glfwSetWindowSizeCallback(window, godotWindowSizeCallback);
+    glfwSetFramebufferSizeCallback(window, godotFramebufferSizeCallback);
 }
 
 }
@@ -286,6 +300,7 @@ int main(int argc, char *argv[]) {
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     io.DisplaySize = ImVec2(800, 600);
+    io.IniFilename = nullptr;
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     bool b = ImGui_ImplOpenGL3_Init("#version 300 es"); // 根据ES版本调整
     if (!b)
@@ -293,8 +308,16 @@ int main(int argc, char *argv[]) {
         printf("imgui init fail\n ");
     }
     installGodotInputCallbacks(window);
+    int framebuffer_width = 0;
+    int framebuffer_height = 0;
+    glfwGetFramebufferSize(window, &framebuffer_width, &framebuffer_height);
+    godotFramebufferSizeCallback(window, framebuffer_width, framebuffer_height);
     // 4. 初始化 Godot
     initGodotOs(godotLogger);
+    int window_width = 0;
+    int window_height = 0;
+    glfwGetWindowSize(window, &window_width, &window_height);
+    godotLibWindowChange(window_width, window_height);
 
     const char *project_path = argc > 1 ? argv[1] : "../../testProj";
     printf("Godot project path: %s\n", project_path);

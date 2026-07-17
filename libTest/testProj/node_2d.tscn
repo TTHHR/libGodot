@@ -3,13 +3,22 @@
 [ext_resource type="Script" path="res://input_feedback.gd" id="1_feedback"]
 [ext_resource type="Script" uid="uid://ce8iixccd7vav" path="res://check_button.gd" id="2_button"]
 
-[node name="Node2D" type="Node2D"]
+[node name="Node2D" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_feedback")
 
 [node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
-offset_right = 800.0
-offset_bottom = 600.0
 color = Color(0.09, 0.105, 0.12, 1)
 
 [node name="Title" type="Label" parent="."]

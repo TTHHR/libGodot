@@ -265,7 +265,8 @@ Point2i DisplayServerEmbedded::window_get_position_with_decorations(DisplayServe
 	return Point2i();
 }
 Size2i DisplayServerEmbedded::window_get_size_with_decorations(DisplayServer::WindowID p_window) const {
-	return EmbeddedOS::get_singleton()->get_display_size();
+    ERR_FAIL_COND_V(p_window != MAIN_WINDOW_ID, Size2i());
+	return main_window.size;
 }
 void DisplayServerEmbedded::window_set_position(const Point2i &p_position, DisplayServer::WindowID p_window) {
 	// Not supported on Android.
@@ -292,7 +293,17 @@ Size2i DisplayServerEmbedded::window_get_min_size(DisplayServer::WindowID p_wind
 }
 
 void DisplayServerEmbedded::window_set_size(const Size2i p_size, DisplayServer::WindowID p_window) {
-	// Not supported on Android.
+    ERR_FAIL_COND(p_window != MAIN_WINDOW_ID);
+    if (p_size.width <= 0 || p_size.height <= 0 || main_window.size == p_size) {
+        return;
+    }
+
+    main_window.size = p_size;
+    EmbeddedOS::get_singleton()->set_display_size(p_size);
+
+    if (rect_changed_callback.is_valid()) {
+        rect_changed_callback.call(Rect2i(Point2i(), main_window.size));
+    }
 }
 int DisplayServerEmbedded::get_screen_count() const {
 	return 1;
@@ -305,7 +316,7 @@ Point2i DisplayServerEmbedded::screen_get_position(int p_screen) const {
 	return Point2i(0, 0);
 }
 Size2i DisplayServerEmbedded::screen_get_size(int p_screen) const {
-	return Size2i();
+	return EmbeddedOS::get_singleton()->get_display_size();
 }
 Rect2i DisplayServerEmbedded::screen_get_usable_rect(int p_screen) const {
 

@@ -38,6 +38,7 @@ public:
 
 private:
     MainLoop *main_loop = nullptr;
+    Size2i display_size = Size2i(800, 600);
     std::mutex input_mutex;
     std::deque<EmbeddedInputEvent> input_events;
 public:
@@ -66,7 +67,8 @@ public:
     }
 
     virtual MainLoop *get_main_loop() const override;
-    Size2i get_display_size();
+    Size2i get_display_size() const;
+    void set_display_size(const Size2i &p_size);
     bool should_swap_buffers;
     void push_input_event(const EmbeddedInputEvent &p_event);
     bool pop_input_event(EmbeddedInputEvent &r_event);

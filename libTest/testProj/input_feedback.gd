@@ -1,4 +1,4 @@
-extends Node2D
+extends Control
 
 @onready var mouse_label: Label = $MouseLabel
 @onready var button_label: Label = $ButtonLabel
