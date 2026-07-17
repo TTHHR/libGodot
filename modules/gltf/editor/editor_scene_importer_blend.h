@@ -30,7 +30,7 @@
 
 #pragma once
 
-#include "editor/editor_file_system.h"
+#include "editor/file_system/editor_file_system.h"
 #include "editor/import/3d/resource_importer_scene.h"
 
 class Animation;
@@ -63,6 +63,11 @@ public:
 	enum {
 		BLEND_MODIFIERS_NONE,
 		BLEND_MODIFIERS_ALL
+	};
+	enum {
+		BLEND_VERTEX_COLOR_MATERIAL,
+		BLEND_VERTEX_COLOR_ACTIVE,
+		BLEND_VERTEX_COLOR_NONE
 	};
 
 	virtual void get_extensions(List<String> *r_extensions) const override;

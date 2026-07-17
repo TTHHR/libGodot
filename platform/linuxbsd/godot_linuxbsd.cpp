@@ -30,19 +30,31 @@
 
 #include "os_linuxbsd.h"
 
+#include "core/profiling/profiling.h"
 #include "main/main.h"
 
 #include <unistd.h>
+
+#include <chrono>
 #include <climits>
 #include <clocale>
+#include <cstdio>
 #include <cstdlib>
-//tthhr add
-#include <chrono> // For time calculations
-#include <stdio.h>
-#include <string.h>
 
-#if defined(SANITIZERS_ENABLED)
+#if defined(ASAN_ENABLED)
 #include <sys/resource.h>
+#endif
+
+#if defined(__x86_64) || defined(__x86_64__)
+void __cpuid(int *r_cpuinfo, int p_info) {
+	// Note: Some compilers have a buggy `__cpuid` intrinsic, using inline assembly (based on LLVM-20 implementation) instead.
+	__asm__ __volatile__(
+			"xchgq %%rbx, %q1;"
+			"cpuid;"
+			"xchgq %%rbx, %q1;"
+			: "=a"(r_cpuinfo[0]), "=r"(r_cpuinfo[1]), "=c"(r_cpuinfo[2]), "=d"(r_cpuinfo[3])
+			: "0"(p_info));
+}
 #endif
 
 // For export templates, add a section; the exporter will patch it to enclose
@@ -58,14 +70,37 @@ extern "C" const char *pck_section_dummy_call() {
 #endif
 
 int main(int argc, char *argv[]) {
-    // Get software start time
-    char logbuf[1024];
-    auto start_time = std::chrono::high_resolution_clock::now();
-#if defined(SANITIZERS_ENABLED)
+#if defined(__x86_64) || defined(__x86_64__)
+	int cpuinfo[4];
+	__cpuid(cpuinfo, 0x01);
+
+	if (!(cpuinfo[2] & (1 << 20))) {
+		printf("A CPU with SSE4.2 instruction set support is required.\n");
+
+		int ret = system("zenity --warning --title \"Godot Engine\" --text \"A CPU with SSE4.2 instruction set support is required.\" 2> /dev/null");
+		if (ret != 0) {
+			ret = system("kdialog --title \"Godot Engine\" --sorry \"A CPU with SSE4.2 instruction set support is required.\" 2> /dev/null");
+		}
+		if (ret != 0) {
+			ret = system("Xdialog --title \"Godot Engine\" --msgbox \"A CPU with SSE4.2 instruction set support is required.\" 0 0 2> /dev/null");
+		}
+		if (ret != 0) {
+			ret = system("xmessage -center -title \"Godot Engine\" \"A CPU with SSE4.2 instruction set support is required.\" 2> /dev/null");
+		}
+		abort();
+	}
+#endif
+
+	char logbuf[1024];
+	auto start_time = std::chrono::high_resolution_clock::now();
+
+#if defined(ASAN_ENABLED)
 	// Note: Set stack size to be at least 30 MB (vs 8 MB default) to avoid overflow, address sanitizer can increase stack usage up to 3 times.
 	struct rlimit stack_lim = { 0x1E00000, 0x1E00000 };
 	setrlimit(RLIMIT_STACK, &stack_lim);
 #endif
+
+	godot_init_profiler();
 
 	OS_LinuxBSD os;
 
@@ -126,6 +161,7 @@ int main(int argc, char *argv[]) {
 	sprintf(logbuf,"Total runtime: %.2f seconds" ,runtime_duration.count());
 	WARN_PRINT(logbuf);
 
+	godot_cleanup_profiler();
 	//return os.get_exit_code();
 	return EXIT_SUCCESS;
 }

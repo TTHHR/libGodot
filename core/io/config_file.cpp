@@ -31,6 +31,7 @@
 #include "config_file.h"
 
 #include "core/io/file_access_encrypted.h"
+#include "core/object/class_db.h"
 #include "core/string/string_builder.h"
 #include "core/variant/variant_parser.h"
 
@@ -187,22 +188,22 @@ Error ConfigFile::save_encrypted_pass(const String &p_path, const String &p_pass
 	return _internal_save(fae);
 }
 
-Error ConfigFile::_internal_save(Ref<FileAccess> file) {
+Error ConfigFile::_internal_save(Ref<FileAccess> p_file) {
 	bool first = true;
 	for (const KeyValue<String, HashMap<String, Variant>> &E : values) {
 		if (first) {
 			first = false;
 		} else {
-			file->store_string("\n");
+			p_file->store_string("\n");
 		}
 		if (!E.key.is_empty()) {
-			file->store_string("[" + E.key.replace("]", "\\]") + "]\n\n");
+			p_file->store_string("[" + E.key.replace("]", "\\]") + "]\n\n");
 		}
 
 		for (const KeyValue<String, Variant> &F : E.value) {
 			String vstr;
 			VariantWriter::write_to_string(F.value, vstr);
-			file->store_string(F.key.property_name_encode() + "=" + vstr + "\n");
+			p_file->store_string(F.key.property_name_encode() + "=" + vstr + "\n");
 		}
 	}
 
@@ -255,9 +256,9 @@ Error ConfigFile::load_encrypted_pass(const String &p_path, const String &p_pass
 	return _internal_load(p_path, fae);
 }
 
-Error ConfigFile::_internal_load(const String &p_path, Ref<FileAccess> f) {
+Error ConfigFile::_internal_load(const String &p_path, Ref<FileAccess> p_file) {
 	VariantParser::StreamFile stream;
-	stream.f = f;
+	stream.f = p_file;
 
 	Error err = _parse(p_path, &stream);
 

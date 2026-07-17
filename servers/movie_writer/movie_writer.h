@@ -32,7 +32,7 @@
 
 #include "core/io/image.h"
 #include "core/templates/local_vector.h"
-#include "servers/audio_server.h"
+#include "servers/audio/audio_server.h"
 
 class MovieWriter : public Object {
 	GDCLASS(MovieWriter, Object);
@@ -40,6 +40,10 @@ class MovieWriter : public Object {
 	uint64_t fps = 0;
 	uint64_t mix_rate = 0;
 	uint32_t audio_channels = 0;
+
+	// The output resolution, which can differ from the window size.
+	// Used as a base for resizing all subsequent frames if their resolution differs.
+	Vector2i movie_size;
 
 	float cpu_time = 0.0f;
 	float gpu_time = 0.0f;
@@ -70,7 +74,7 @@ protected:
 	GDVIRTUAL0RC_REQUIRED(Vector<String>, _get_supported_extensions)
 
 	GDVIRTUAL3R_REQUIRED(Error, _write_begin, const Size2i &, uint32_t, const String &)
-	GDVIRTUAL2R_REQUIRED(Error, _write_frame, const Ref<Image> &, GDExtensionConstPtr<int32_t>)
+	GDVIRTUAL2R_REQUIRED(Error, _write_frame, const Ref<Image> &, GDExtensionPtr<const int32_t>)
 	GDVIRTUAL0_REQUIRED(_write_end)
 
 	static void _bind_methods();
