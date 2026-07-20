@@ -5,7 +5,7 @@
 #include "core/config/project_settings.h"
 #include "core/input/input.h"
 #include "main/main.h"
-#include "servers/display_server.h"
+#include "servers/display/display_server.h"
 #include <iostream>
 
 static EmbeddedOS* embedded_os = nullptr;

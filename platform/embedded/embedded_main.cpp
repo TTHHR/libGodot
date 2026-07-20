@@ -1,5 +1,7 @@
 #include "embedded_os.h"
+
 #include "main/main.h"
+
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_X11
 #include <EGL/egl.h>
@@ -32,7 +34,7 @@ int main(int argc, char *argv[]) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
-    glfwWindowHint(GLFW_SAMPLES, 4);  // 4倍采样
+	glfwWindowHint(GLFW_SAMPLES, 4); // 4倍采样
 
 	GLFWwindow *glfw_window = glfwCreateWindow(800, 600, "OpenGL + EGL", NULL, NULL);
 	if (!glfw_window) {
@@ -104,26 +106,25 @@ int main(int argc, char *argv[]) {
 
 	auto main_loop = os.get_main_loop();
 	main_loop->initialize();
-    int frame=0;
-    bool doorFlState=false;
-    float now_float;
-    os.getGDValue(TYPE_FLOAT, "orbit_speed", &now_float);
+	int frame = 0;
+	bool doorFlState = false;
+	float now_float;
+	os.getGDValue(TYPE_FLOAT, "orbit_speed", &now_float);
 	while (!glfwWindowShouldClose(glfw_window)) {
 		glfwPollEvents();
-		
-        frame++;
-        if(frame==60)
-        {
-            frame=0;
-            now_float+=5;
-            if (now_float > 80) {
-                now_float = 20;
-            }
-            os.setGDValue(TYPE_FLOAT, "orbit_speed", &now_float);
-            os.setGDValue(TYPE_BOOL, "door_state_fr", &doorFlState);
-            doorFlState=!doorFlState;
-            os.setGDValue(TYPE_BOOL, "door_state_fl", &doorFlState);
-        }
+
+		frame++;
+		if (frame == 60) {
+			frame = 0;
+			now_float += 5;
+			if (now_float > 80) {
+				now_float = 20;
+			}
+			os.setGDValue(TYPE_FLOAT, "orbit_speed", &now_float);
+			os.setGDValue(TYPE_BOOL, "door_state_fr", &doorFlState);
+			doorFlState = !doorFlState;
+			os.setGDValue(TYPE_BOOL, "door_state_fl", &doorFlState);
+		}
 
 		if (Main::iteration()) {
 			break;
