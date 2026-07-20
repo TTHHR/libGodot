@@ -1,7 +1,9 @@
 // embedded_os.cpp
 #include "embedded_os.h"
-#include "main/main.h"
+
 #include "displayserver_embedded.h"
+#include "core/os/main_loop.h"
+#include "main/main.h"
 
 void EmbeddedOS::initialize() {
     DisplayServerEmbedded::register_display_driver();

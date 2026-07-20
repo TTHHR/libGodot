@@ -1,9 +1,11 @@
-#include "embedded_os.h"
 #include "embedded_export.h"
+
+#include "embedded_os.h"
 
 #include "core/config/engine.h"
 #include "core/config/project_settings.h"
 #include "core/input/input.h"
+#include "core/os/main_loop.h"
 #include "main/main.h"
 #include "servers/display/display_server.h"
 #include <iostream>
@@ -126,7 +128,7 @@ void godotLibWindowChange(int w,int h)
     embedded_os->set_display_size(size);
 
     if (DisplayServer::get_singleton()) {
-        DisplayServer::get_singleton()->window_set_size(size, DisplayServer::MAIN_WINDOW_ID);
+        DisplayServer::get_singleton()->window_set_size(size, DisplayServerEnums::MAIN_WINDOW_ID);
     }
 }
 

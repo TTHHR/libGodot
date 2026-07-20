@@ -2,9 +2,23 @@
 #include "servers/display/display_server.h"
 #include "core/input/input_event.h"
 #include "servers/rendering/renderer_compositor.h"
-#include "servers/rendering_server.h"
+#include "servers/rendering/rendering_server.h"
 class DisplayServerEmbedded : public DisplayServer {
     GDSOFTCLASS(DisplayServerEmbedded, DisplayServer);
+
+public:
+	using Context = DisplayServerEnums::Context;
+	using Feature = DisplayServerEnums::Feature;
+	using VSyncMode = DisplayServerEnums::VSyncMode;
+	using WindowFlags = DisplayServerEnums::WindowFlags;
+	using WindowID = DisplayServerEnums::WindowID;
+	using WindowMode = DisplayServerEnums::WindowMode;
+
+	static constexpr Feature FEATURE_MOUSE = DisplayServerEnums::FEATURE_MOUSE;
+	static constexpr Feature FEATURE_SWAP_BUFFERS = DisplayServerEnums::FEATURE_SWAP_BUFFERS;
+	static constexpr WindowID MAIN_WINDOW_ID = DisplayServerEnums::MAIN_WINDOW_ID;
+	static constexpr VSyncMode VSYNC_ENABLED = DisplayServerEnums::VSYNC_ENABLED;
+	static constexpr WindowMode WINDOW_MODE_FULLSCREEN = DisplayServerEnums::WINDOW_MODE_FULLSCREEN;
 
 private:
     static void _dispatch_input_events(const Ref<InputEvent> &p_event);
@@ -35,7 +49,7 @@ private:
     
 public:
     // 构造/析构函数
-    static DisplayServer *create_func(const String &p_rendering_driver, WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error);
+    static DisplayServer *create_func(const String &p_rendering_driver, WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error);
     DisplayServerEmbedded(const String &p_rendering_driver, WindowMode p_mode, uint32_t p_flags, const Size2i &p_resolution, Error &r_error);
     ~DisplayServerEmbedded();
     
@@ -50,7 +64,7 @@ public:
     virtual Size2i window_get_size(WindowID p_window = MAIN_WINDOW_ID) const override;
     virtual Size2i window_get_size_with_decorations(WindowID p_window = MAIN_WINDOW_ID) const override;
     virtual Point2i window_get_position(WindowID p_window = MAIN_WINDOW_ID) const override;
-    virtual bool window_get_flag(DisplayServer::WindowFlags p_flag, DisplayServer::WindowID p_window) const  override;
+    virtual bool window_get_flag(WindowFlags p_flag, WindowID p_window) const  override;
     virtual void window_set_position(const Point2i &p_position, WindowID p_window = MAIN_WINDOW_ID) override;
     virtual Point2i window_get_position_with_decorations(WindowID p_window = MAIN_WINDOW_ID) const override;
     virtual void window_set_current_screen(int p_screen, WindowID p_window = MAIN_WINDOW_ID) override ;
@@ -69,32 +83,34 @@ public:
     virtual int get_primary_screen() const override;
     virtual Rect2i screen_get_usable_rect(int p_screen) const  override;
     virtual int screen_get_dpi(int p_screen) const override;
-    virtual void window_request_attention(DisplayServer::WindowID p_window) override;
+    virtual void window_request_attention(WindowID p_window) override;
 virtual float screen_get_refresh_rate(int p_screen) const override;
 virtual void window_set_window_event_callback(const Callable &p_callable, WindowID p_window = MAIN_WINDOW_ID) override;
 	virtual void window_set_input_event_callback(const Callable &p_callable, WindowID p_window = MAIN_WINDOW_ID) override;
 	virtual void window_set_input_text_callback(const Callable &p_callable, WindowID p_window = MAIN_WINDOW_ID) override;
 	virtual void window_set_rect_changed_callback(const Callable &p_callable, WindowID p_window = MAIN_WINDOW_ID) override;
 	virtual void window_set_drop_files_callback(const Callable &p_callable, WindowID p_window = MAIN_WINDOW_ID) override;
-virtual DisplayServer::VSyncMode window_get_vsync_mode(WindowID p_window) const override;
+virtual VSyncMode window_get_vsync_mode(WindowID p_window) const override;
 virtual ObjectID window_get_attached_instance_id(WindowID p_window = MAIN_WINDOW_ID) const override;
-virtual DisplayServer::WindowID get_window_at_screen_position(const Point2i &p_position) const override;
-virtual void window_attach_instance_id(ObjectID p_instance, DisplayServer::WindowID p_window) override;
-    virtual void window_move_to_foreground(DisplayServer::WindowID p_window)override;
+virtual WindowID get_window_at_screen_position(const Point2i &p_position) const override;
+virtual void window_attach_instance_id(ObjectID p_instance, WindowID p_window) override;
+    virtual void window_move_to_foreground(WindowID p_window)override;
 
     virtual bool window_is_focused(WindowID p_window) const override;
 
-    virtual bool window_can_draw(DisplayServer::WindowID p_window) const override;
+    virtual bool window_can_draw(WindowID p_window) const override;
 
     virtual bool can_any_window_draw() const override;
-    virtual DisplayServer::WindowMode window_get_mode(DisplayServer::WindowID p_window) const  override;
+    virtual WindowMode window_get_mode(WindowID p_window) const  override;
 
-virtual bool window_is_maximize_allowed(DisplayServer::WindowID p_window) const  override;
+virtual bool window_is_maximize_allowed(WindowID p_window) const  override;
 
-virtual void window_set_flag(DisplayServer::WindowFlags p_flag, bool p_enabled, DisplayServer::WindowID p_window)  override;
+virtual void window_set_flag(WindowFlags p_flag, bool p_enabled, WindowID p_window)  override;
     // 空实现或占位实现
-    virtual Vector<DisplayServer::WindowID> get_window_list() const override ;
+    virtual Vector<WindowID> get_window_list() const override ;
     
     static Vector<String> get_rendering_drivers_func();
     static void register_display_driver();
+    virtual Point2i mouse_get_position() const override;
+    virtual BitField<MouseButtonMask> mouse_get_button_state() const override;
 };
